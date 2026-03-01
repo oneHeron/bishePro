@@ -64,12 +64,25 @@
           <p><strong>Estimated Remaining:</strong> {{ estimatedRemainingText }}</p>
           <p><strong>Method:</strong> {{ methodName }}</p>
           <p><strong>Dataset:</strong> {{ datasetName }}</p>
+          <p><strong>Runtime Device:</strong> {{ runtimeDeviceText }}</p>
           <p><strong>Auto Refresh:</strong> {{ autoRefreshText }}</p>
           <p v-if="latestLog"><strong>Current Step:</strong> {{ latestLog }}</p>
           <p><strong>Created Time:</strong> {{ formatTime(run?.created_at_ts) }}</p>
           <p><strong>Started Time:</strong> {{ formatTime(run?.started_at_ts) }}</p>
           <p><strong>Finished Time:</strong> {{ formatTime(run?.finished_at_ts) }}</p>
+          <div v-if="runNotices.length" class="notice-box">
+            <strong>Notice:</strong>
+            <ul>
+              <li v-for="(notice, idx) in runNotices" :key="`notice-${idx}`">{{ notice }}</li>
+            </ul>
+          </div>
           <p v-if="run?.error" class="msg"><strong>Error:</strong> {{ run.error }}</p>
+          <div v-if="fullErrorDetail" class="error-detail-box">
+            <button type="button" class="error-detail-toggle" @click="showErrorDetail = !showErrorDetail">
+              {{ showErrorDetail ? 'Hide Error Detail' : 'Show Error Detail' }}
+            </button>
+            <pre v-if="showErrorDetail">{{ fullErrorDetail }}</pre>
+          </div>
         </article>
 
         <article class="metrics-card">
@@ -98,10 +111,20 @@
         </article>
 
         <div class="btn-row">
+          <button
+            v-if="isRunning"
+            type="button"
+            class="danger-btn"
+            :disabled="canceling"
+            @click="cancelCurrentRun"
+          >
+            {{ canceling ? 'Cancelling...' : 'Cancel Run' }}
+          </button>
           <button type="button" @click="showLogs = !showLogs">{{ showLogs ? 'Hide Execution Logs' : 'View Execution Logs' }}</button>
           <button type="button" :disabled="!assignmentRows.length" @click="downloadCommunityCsv">Download Community CSV</button>
           <button type="button" @click="downloadResult">Download Results</button>
         </div>
+        <p v-if="actionMsg" :class="actionMsgClass">{{ actionMsg }}</p>
       </div>
     </div>
 
@@ -125,6 +148,9 @@ const run = ref(null)
 const methods = ref([])
 const datasets = ref([])
 const showLogs = ref(false)
+const showErrorDetail = ref(false)
+const canceling = ref(false)
+const actionMsg = ref('')
 const nowTs = ref(Date.now())
 const isRefreshing = ref(false)
 const nextRefreshInMs = ref(1500)
@@ -141,6 +167,29 @@ const isRunning = computed(() => ['pending', 'running'].includes(run.value?.stat
 const latestLog = computed(() => {
   const logs = run.value?.logs || []
   return logs.length ? logs[logs.length - 1] : ''
+})
+const runtimeDeviceText = computed(() => {
+  const runtime = run.value?.results?.runtime
+  if (runtime && typeof runtime === 'object') {
+    const framework = String(runtime.framework || 'unknown')
+    const actual = String(runtime.actual_device || 'cpu').toUpperCase()
+    const requested = String(runtime.requested_device || 'cpu').toUpperCase()
+    return `${actual} (requested ${requested}, ${framework})`
+  }
+
+  const logs = run.value?.logs || []
+  for (let i = logs.length - 1; i >= 0; i -= 1) {
+    const line = String(logs[i] || '')
+    if (!line.startsWith('[runtime]')) continue
+    const actualMatch = line.match(/actual=([^,]+)/)
+    const reqMatch = line.match(/requested=([^,]+)/)
+    const fwMatch = line.match(/framework=([^,]+)/)
+    const actual = (actualMatch?.[1] || '-').trim().toUpperCase()
+    const requested = (reqMatch?.[1] || '-').trim().toUpperCase()
+    const framework = (fwMatch?.[1] || 'unknown').trim()
+    return `${actual} (requested ${requested}, ${framework})`
+  }
+  return '-'
 })
 const displayDuration = computed(() => {
   if (!run.value) return '-'
@@ -177,6 +226,18 @@ const metricRows = computed(() => {
     value: typeof value === 'number' ? value.toFixed(3) : String(value)
   }))
 })
+const runNotices = computed(() => {
+  const notices = run.value?.results?.notices
+  if (!Array.isArray(notices)) return []
+  return notices.filter((item) => typeof item === 'string' && item.trim()).map((item) => item.trim())
+})
+const fullErrorDetail = computed(() => {
+  const fromResults = run.value?.results?.error_detail
+  if (typeof fromResults === 'string' && fromResults.trim()) return fromResults.trim()
+  if (typeof run.value?.error === 'string' && run.value.error.trim()) return run.value.error.trim()
+  return ''
+})
+const actionMsgClass = computed(() => (actionMsg.value.startsWith('已') ? 'ok' : 'msg'))
 
 const assignmentRows = computed(() => run.value?.results?.community_assignment || [])
 const vizNodes = computed(() => run.value?.results?.viz?.nodes || [])
@@ -249,7 +310,7 @@ async function load() {
   isRefreshing.value = true
   run.value = await api.getRun(runId)
   isRefreshing.value = false
-  if (['finished', 'failed'].includes(run.value.status) && timer) {
+  if (['finished', 'failed', 'cancelled'].includes(run.value.status) && timer) {
     clearInterval(timer)
     timer = null
     if (countdownTimer) {
@@ -281,6 +342,21 @@ async function downloadCommunityCsv() {
     lines.push(`${row.node},${row.community}`)
   }
   downloadBlob(lines.join('\n'), `run-${runId}-community.csv`, 'text/csv;charset=utf-8')
+}
+
+async function cancelCurrentRun() {
+  if (!isRunning.value || canceling.value) return
+  canceling.value = true
+  actionMsg.value = ''
+  try {
+    await api.cancelRun(runId)
+    actionMsg.value = '已提交取消请求，后台将终止该任务进程。'
+    await load()
+  } catch (err) {
+    actionMsg.value = err.message || '取消失败'
+  } finally {
+    canceling.value = false
+  }
 }
 
 onMounted(async () => {

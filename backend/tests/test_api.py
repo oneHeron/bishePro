@@ -85,7 +85,7 @@ def test_auth_and_protected_create_run() -> None:
 
         result = get_run_results(run_id=run_id, username="alice", db=db)
         assert result.run_id == run_id
-        assert result.status.value in {"pending", "running", "finished", "failed"}
+        assert result.status.value in {"pending", "running", "finished", "failed", "cancelled"}
     finally:
         db.close()
 

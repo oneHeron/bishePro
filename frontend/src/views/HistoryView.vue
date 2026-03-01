@@ -126,12 +126,14 @@ function statusLabel(status) {
   if (status === 'running') return '运行中'
   if (status === 'finished') return '已完成'
   if (status === 'failed') return '运行失败'
+  if (status === 'cancelled') return '已取消'
   return '未知'
 }
 
 function statusPillClass(status) {
   if (status === 'finished') return 'is-finished'
   if (status === 'failed') return 'is-failed'
+  if (status === 'cancelled') return 'is-cancelled'
   if (status === 'running') return 'is-running'
   return 'is-pending'
 }
@@ -155,9 +157,9 @@ function runDurationSec(item) {
 function progressText(item) {
   if (!item) return '-'
   const status = item.status
-  if (status === 'finished' || status === 'failed') {
+  if (status === 'finished' || status === 'failed' || status === 'cancelled') {
     const duration = runDurationSec(item)
-    return duration === null ? '已结束' : `总耗时 ${formatSeconds(duration)}`
+    return duration === null ? (status === 'cancelled' ? '已取消' : '已结束') : `总耗时 ${formatSeconds(duration)}`
   }
 
   const baseTs = status === 'running' ? Number(item.started_at_ts || item.created_at_ts || 0) : Number(item.created_at_ts || 0)

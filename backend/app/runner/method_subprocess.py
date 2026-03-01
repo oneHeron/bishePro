@@ -2,14 +2,18 @@ import json
 import sys
 from typing import Any, Dict
 import argparse
+import traceback
 
 from app.services.plugin_loader import load_builtin_plugins
 from core_modules.methods.base import MethodInputData
 from core_modules.registry import registry
 
 
-def _fail(message: str, exit_code: int = 2) -> int:
-    print(json.dumps({"ok": False, "error": message}, ensure_ascii=False))
+def _fail(message: str, exit_code: int = 2, detail: str = "") -> int:
+    payload = {"ok": False, "error": message}
+    if detail:
+        payload["error_detail"] = detail
+    print(json.dumps(payload, ensure_ascii=False))
     return exit_code
 
 
@@ -63,7 +67,7 @@ def main() -> int:
             params=params,
         )
     except Exception as exc:
-        return _fail(str(exc))
+        return _fail(str(exc), detail=traceback.format_exc())
 
     try:
         normalized = [int(x) for x in y_pred]

@@ -18,7 +18,7 @@ from app.models.schemas import (
     RunStatus,
 )
 from core_modules.registry import registry
-from app.runner.mock_runner import build_version_info, submit_run
+from app.runner.mock_runner import build_version_info, cancel_run_execution, submit_run
 
 router = APIRouter(prefix="/runs", tags=["runs"])
 
@@ -64,6 +64,14 @@ def _validate_run(payload: RunCreateRequest) -> None:
             raise HTTPException(
                 status_code=400,
                 detail=f"Method CDBNE requires node features, but dataset {dataset.name} has no features",
+            )
+    if payload.method_key == "csea":
+        supported = {"dolphins", "karate", "strike", "polbooks", "email_eu", "polblogs", "citeseer", "cora", "youtube"}
+        if payload.dataset_key not in supported:
+            supported_text = ", ".join(sorted(supported))
+            raise HTTPException(
+                status_code=400,
+                detail=f"Method CSEA currently supports only datasets: {supported_text}",
             )
 
     for metric_key in payload.metric_keys:
@@ -147,6 +155,28 @@ def delete_run(run_id: str, username: str = Depends(require_user), db: Session =
     db.delete(run)
     db.commit()
     return RunDeleteResponse(deleted=1)
+
+
+@router.post("/{run_id}/cancel")
+def cancel_run(run_id: str, username: str = Depends(require_user), db: Session = Depends(get_db)) -> Dict:
+    user = db.query(User).filter(User.username == username).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User no longer exists")
+
+    run = db.query(Run).filter(Run.run_id == run_id, Run.user_id == user.id).first()
+    if not run:
+        raise HTTPException(status_code=404, detail=f"Run not found: {run_id}")
+    if run.status not in {RunStatus.pending.value, RunStatus.running.value}:
+        raise HTTPException(status_code=400, detail="Only pending/running runs can be cancelled")
+
+    result = cancel_run_execution(run_id)
+    run.logs = [*(run.logs or []), "Cancellation requested by user"]
+    db.commit()
+    return {
+        "run_id": run_id,
+        "cancel_requested": True,
+        "had_active_process": bool(result.get("had_active_process")),
+    }
 
 
 @router.post("/batch-delete", response_model=RunDeleteResponse)

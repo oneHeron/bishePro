@@ -8,18 +8,27 @@
         <button type="button" :class="{ active: type === 'methods' }" @click="goType('methods')">Methods</button>
         <button type="button" :class="{ active: type === 'datasets' }" @click="goType('datasets')">Datasets</button>
         <button type="button" :class="{ active: type === 'metrics' }" @click="goType('metrics')">Metrics</button>
+        <div class="catalog-search-wrap">
+          <input
+            v-model.trim="searchText"
+            type="text"
+            class="catalog-search-input"
+            :placeholder="searchPlaceholder"
+          />
+        </div>
       </div>
 
       <p v-if="loading" class="hint">Loading {{ type }}...</p>
-      <p v-else-if="!items.length" class="hint">No data.</p>
+      <p v-else-if="!filteredItems.length" class="hint">No matched data.</p>
 
       <div v-else class="catalog-list">
-        <article v-for="item in items" :key="item.key" class="catalog-item">
+        <article v-for="item in filteredItems" :key="item.key" class="catalog-item">
           <header>
-            <h2>{{ item.name }}</h2>
-            <code>{{ item.key }}</code>
+            <h2 v-html="highlightText(item.name)" />
+            <code v-html="highlightText(item.key)" />
           </header>
           <p>{{ detailText(item) }}</p>
+          <p v-if="searchText && matchedSnippet(item)" class="catalog-match" v-html="matchedSnippet(item)" />
           <p v-if="type === 'methods'" class="hint">
             <strong>实现级别:</strong> {{ methodLevelText(item) }}
           </p>
@@ -57,6 +66,7 @@ const loading = ref(false)
 const methods = ref([])
 const datasets = ref([])
 const metrics = ref([])
+const searchText = ref('')
 
 const type = computed(() => {
   const t = route.params.type
@@ -75,6 +85,92 @@ const items = computed(() => {
   if (type.value === 'datasets') return datasets.value
   return metrics.value
 })
+const searchPlaceholder = computed(() => {
+  if (type.value === 'methods') return 'Search methods by name / key / description'
+  if (type.value === 'datasets') return 'Search datasets by name / key / description'
+  return 'Search metrics by name / key / description'
+})
+const filteredItems = computed(() => {
+  const keyword = normalizeText(searchText.value)
+  if (!keyword) return items.value
+  const tokens = keyword.split(/\s+/).filter(Boolean)
+  return items.value.filter((item) => {
+    const haystack = normalizeText(
+      [
+        item?.name,
+        item?.key,
+        item?.description,
+        item?.algorithm_note,
+        item?.source,
+      ]
+        .filter(Boolean)
+        .join(' ')
+    )
+    return tokens.every((token) => haystack.includes(token))
+  })
+})
+
+function normalizeText(text) {
+  return String(text || '').toLowerCase()
+}
+
+function escapeHtml(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function escapeRegExp(text) {
+  return String(text || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+function searchTokens() {
+  return normalizeText(searchText.value).split(/\s+/).filter(Boolean)
+}
+
+function highlightText(text) {
+  const raw = String(text || '')
+  const escaped = escapeHtml(raw)
+  const tokens = searchTokens()
+  if (!tokens.length) return escaped
+  const pattern = tokens.map((t) => escapeRegExp(t)).join('|')
+  if (!pattern) return escaped
+  return escaped.replace(new RegExp(`(${pattern})`, 'gi'), '<mark>$1</mark>')
+}
+
+function matchedSnippet(item) {
+  const tokens = searchTokens()
+  if (!tokens.length) return ''
+  const candidates = [
+    item?.description,
+    item?.algorithm_note,
+    item?.name,
+    item?.key,
+    item?.source,
+  ]
+    .filter(Boolean)
+    .map((v) => String(v))
+
+  for (const text of candidates) {
+    const lowered = normalizeText(text)
+    let hit = -1
+    for (const token of tokens) {
+      const idx = lowered.indexOf(token)
+      if (idx !== -1 && (hit === -1 || idx < hit)) hit = idx
+    }
+    if (hit === -1) continue
+
+    const start = Math.max(0, hit - 24)
+    const end = Math.min(text.length, hit + 48)
+    const prefix = start > 0 ? '...' : ''
+    const suffix = end < text.length ? '...' : ''
+    return `${prefix}${highlightText(text.slice(start, end))}${suffix}`
+  }
+  return ''
+}
 
 function methodCategory(item) {
   const supportsAttr = item.supports_attributed !== false
@@ -117,6 +213,7 @@ function detailText(item) {
 }
 
 function goType(nextType) {
+  searchText.value = ''
   router.push(`/catalog/${nextType}`)
 }
 

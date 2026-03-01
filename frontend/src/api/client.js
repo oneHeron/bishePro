@@ -33,6 +33,7 @@ export const api = {
   getRun: (id) => request(`/runs/${id}`, {}, true),
   getRunResults: (id) => request(`/runs/${id}/results`, {}, true),
   getMyRuns: () => request('/runs/me', {}, true),
+  cancelRun: (id) => request(`/runs/${id}/cancel`, { method: 'POST' }, true),
   deleteRun: (id) => request(`/runs/${id}`, { method: 'DELETE' }, true),
   deleteRunsBatch: (runIds) => request('/runs/batch-delete', { method: 'POST', body: JSON.stringify({ run_ids: runIds }) }, true)
 }

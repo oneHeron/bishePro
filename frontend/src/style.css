@@ -170,6 +170,21 @@ p {
   color: var(--sub);
 }
 
+.panel-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-search-input {
+  width: 240px;
+  max-width: 44vw;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #bdd0df;
+  background: #f7fbff;
+}
+
 .scroll-list {
   margin: 0;
   padding: 0;
@@ -590,6 +605,16 @@ td {
   gap: 8px;
 }
 
+.danger-btn {
+  background: linear-gradient(180deg, #c65b54, #a13f39);
+  border-color: #943932;
+}
+
+.danger-btn:disabled {
+  background: #b6a0a0;
+  border-color: #b6a0a0;
+}
+
 .copy-btn {
   margin-left: 8px;
   padding: 4px 8px;
@@ -692,6 +717,12 @@ td {
   border-color: #f2c0bd;
 }
 
+.status-pill.is-cancelled {
+  color: #6b4f0f;
+  background: #fff4d8;
+  border-color: #f0d89f;
+}
+
 .logs-card {
   margin-top: 12px;
 }
@@ -699,6 +730,43 @@ td {
 .logs-card ul {
   margin: 0;
   padding-left: 20px;
+}
+
+.notice-box {
+  margin: 8px 0;
+  padding: 10px 12px;
+  border: 1px solid #bfd7ea;
+  border-radius: 10px;
+  background: #eaf4fc;
+  color: #1d4f73;
+}
+
+.notice-box ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+.error-detail-box {
+  margin-top: 8px;
+}
+
+.error-detail-toggle {
+  padding: 6px 10px;
+}
+
+.error-detail-box pre {
+  margin: 8px 0 0;
+  max-height: 280px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #f0c6c3;
+  background: #fff3f2;
+  color: #6e231f;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .hint {
@@ -770,12 +838,27 @@ td {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .catalog-toolbar button {
   background: #e3ebf2;
   color: #203246;
   border-color: #c4d3df;
+}
+
+.catalog-search-wrap {
+  margin-left: auto;
+}
+
+.catalog-search-input {
+  width: 360px;
+  max-width: min(46vw, 420px);
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid #b9ccdc;
+  background: #f7fbff;
 }
 
 .catalog-toolbar .active {
@@ -805,6 +888,23 @@ td {
 .catalog-item h2 {
   margin: 0;
   font-size: 22px;
+}
+
+.catalog-item mark {
+  padding: 0 2px;
+  border-radius: 4px;
+  background: #fff2bf;
+  color: #5c4500;
+}
+
+.catalog-match {
+  margin: 8px 0 0;
+  padding: 6px 10px;
+  border-left: 3px solid #d8b85a;
+  border-radius: 6px;
+  background: #fffaf0;
+  color: #5c4500;
+  font-size: 13px;
 }
 
 .meta-list {

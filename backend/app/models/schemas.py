@@ -9,6 +9,7 @@ class RunStatus(str, Enum):
     running = "running"
     finished = "finished"
     failed = "failed"
+    cancelled = "cancelled"
 
 
 class MethodInfo(BaseModel):

@@ -254,6 +254,14 @@ const methodParamSchema = {
     { key: 'lr_micro', label: 'LR x1e-6', type: 'number', min: 1, max: 1000000, step: 1, default: 100, help: '学习率（默认：Cora=100, Citeseer=5000）' },
     { key: 'weight_decay_micro', label: 'Weight Decay x1e-6', type: 'number', min: 0, max: 1000000, step: 1, default: 5000, help: '权重衰减（5000 表示 5e-3）' },
     { key: 'use_gpu_flag', label: 'Use GPU (1/0)', type: 'number', min: 0, max: 1, step: 1, default: 1, help: '1=GPU，0=CPU' }
+  ],
+  csea: [
+    { key: 'num_clusters', label: 'Num Clusters', type: 'number', min: 2, max: 500, step: 1, default: 2, help: '目标社区数（默认按数据集自动填充）' },
+    { key: 'epochs', label: 'Epochs', type: 'number', min: 1, max: 2000, step: 1, default: 50, help: 'VAE 训练轮次' },
+    { key: 'batch_size', label: 'Batch Size', type: 'number', min: 1, max: 512, step: 1, default: 10, help: 'VAE 批大小' },
+    { key: 'lr_milli', label: 'LR x1e-3', type: 'number', min: 1, max: 1000, step: 1, default: 14, help: '学习率（14 表示 0.014）' },
+    { key: 'network_dims_csv', label: 'Network Dims CSV', type: 'text', default: '32,24,12', help: '编码器网络维度，如 32,24,12（最后一维为 latent）' },
+    { key: 'use_gpu_flag', label: 'Use GPU (1/0)', type: 'number', min: 0, max: 1, step: 1, default: 1, help: 'CSEA 默认 1（GPU），置 0 使用 CPU' }
   ]
 }
 
@@ -279,6 +287,7 @@ const methodCapabilityMap = {
   infomap: { attributed: false, unattributed: true },
   edmot: { attributed: false, unattributed: true },
   cdme: { attributed: false, unattributed: true },
+  csea: { attributed: false, unattributed: true },
   ddgae: { attributed: true, unattributed: false },
   cdbne: { attributed: true, unattributed: false }
 }
@@ -394,6 +403,10 @@ function resetMethodParams(methodKey) {
     applyCdbneDatasetDefaults()
     return
   }
+  if (methodKey === 'csea') {
+    applyCseaDatasetDefaults()
+    return
+  }
 
   const c = selectedDataset.value?.community_count
   if (typeof c === 'number' && Number.isInteger(c) && c > 0 && Object.hasOwn(methodParams, 'num_clusters')) {
@@ -435,6 +448,29 @@ function applyCdbneDatasetDefaults() {
   if (datasetKey === 'citeseer') {
     methodParams.num_clusters = 6
     methodParams.lr_micro = 5000 // 5e-3
+  }
+}
+
+function applyCseaDatasetDefaults() {
+  const datasetKey = String(form.dataset_key || '').toLowerCase()
+  const defaults = {
+    dolphins: { num_clusters: 2, network_dims_csv: '32,24,12' },
+    karate: { num_clusters: 2, network_dims_csv: '24,18' },
+    strike: { num_clusters: 3, network_dims_csv: '24,18' },
+    polbooks: { num_clusters: 3, network_dims_csv: '32,24' },
+    email_eu: { num_clusters: 42, network_dims_csv: '64,48,32,28,12' },
+    polblogs: { num_clusters: 2, network_dims_csv: '256,128,64,128,90' },
+    citeseer: { num_clusters: 6, network_dims_csv: '72,64,48,32' },
+    cora: { num_clusters: 7, network_dims_csv: '128,64,256' },
+    youtube: { num_clusters: 11, network_dims_csv: '1024,512,256,128,96' }
+  }
+  const selected = defaults[datasetKey]
+  if (!selected) return
+  if (Object.hasOwn(methodParams, 'num_clusters')) {
+    methodParams.num_clusters = selected.num_clusters
+  }
+  if (Object.hasOwn(methodParams, 'network_dims_csv')) {
+    methodParams.network_dims_csv = selected.network_dims_csv
   }
 }
 
@@ -522,6 +558,10 @@ watch(
       applyCdbneDatasetDefaults()
       return
     }
+    if (form.method_key === 'csea') {
+      applyCseaDatasetDefaults()
+      return
+    }
     const c = selectedDataset.value?.community_count
     if (typeof c === 'number' && Number.isInteger(c) && c > 0 && Object.hasOwn(methodParams, 'num_clusters')) {
       methodParams.num_clusters = c
@@ -601,7 +641,7 @@ function normalizeMethodParams() {
     out.dropout = Number(methodParams.dropout || 0) / 100
     out.lr = Number(methodParams.lr_milli || 1) * 1e-3
     out.weight_decay = Number(methodParams.weight_decay_micro || 0) * 1e-6
-    out.use_gpu = Number(methodParams.use_gpu_flag || 0) === 1
+    out.use_gpu = Number(methodParams.use_gpu_flag || 1) === 1
     delete out.lr_milli
     delete out.weight_decay_micro
     delete out.use_gpu_flag
@@ -628,6 +668,13 @@ function normalizeMethodParams() {
     delete out.alpha_x100
     delete out.lr_micro
     delete out.weight_decay_micro
+    delete out.use_gpu_flag
+  }
+  if (form.method_key === 'csea') {
+    out.lr = Number(methodParams.lr_milli || 14) * 1e-3
+    out.use_gpu = Number(methodParams.use_gpu_flag || 1) === 1
+    out._conda_env = 'bsenv-tf'
+    delete out.lr_milli
     delete out.use_gpu_flag
   }
   return out

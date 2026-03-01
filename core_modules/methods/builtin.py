@@ -141,6 +141,12 @@ METHOD_META = {
         "supports_attributed": True,
         "supports_unattributed": False,
     },
+    "csea": {
+        "algorithm_note": "CSEA 无属性网络社区检测方法（基于 k-truss + VAE + KMeans）。",
+        "implementation_level": "standard-lite",
+        "supports_attributed": False,
+        "supports_unattributed": True,
+    },
 }
 
 

@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Set, Tuple
 
 from core_modules.methods.base import MethodInputData, MethodPlugin
 from core_modules.methods.cdbne_plugin import CDBNEMethodPlugin
+from core_modules.methods.csea_plugin import CSEAMethodPlugin
 from core_modules.methods.ddgae_plugin import DDGAEMethodPlugin
 from core_modules.methods.gnn_template import GNNTemplatePlugin
 
@@ -289,6 +290,7 @@ def build_method_plugins() -> List[MethodPlugin]:
         InfomapMethodPlugin(),
         EdMotMethodPlugin(),
         CDMEMethodPlugin(),
+        CSEAMethodPlugin(),
         CDBNEMethodPlugin(),
         DDGAEMethodPlugin(),
         GNNTemplatePlugin(),
