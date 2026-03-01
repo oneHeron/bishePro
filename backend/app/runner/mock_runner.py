@@ -2,15 +2,151 @@ import os
 import threading
 import time
 from datetime import datetime
+import json
+from pathlib import Path
+import subprocess
+import shutil
+import tempfile
 from typing import Optional
 
 from app.datasets import dataset_manager
 from app.db import SessionLocal
 from app.models.db_models import Run
 from app.models.schemas import RunStatus
-from core_modules.methods.base import MethodInputData
 from core_modules.methods.metrics import evaluate_metrics
 from core_modules.registry import registry
+
+
+def _backend_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def _repo_root() -> Path:
+    return Path(__file__).resolve().parents[3]
+
+
+def _extract_json_line(text: str) -> Optional[dict]:
+    lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
+    for line in reversed(lines):
+        if not line.startswith("{"):
+            continue
+        try:
+            return json.loads(line)
+        except Exception:
+            continue
+    return None
+
+
+def _resolve_conda_executable() -> str:
+    # Priority: explicit env -> PATH -> common local installs.
+    from_env = (os.getenv("RUNNER_CONDA_EXE") or os.getenv("CONDA_EXE") or "").strip()
+    if from_env and Path(from_env).exists():
+        return from_env
+
+    from_path = shutil.which("conda")
+    if from_path:
+        return from_path
+
+    candidates = [
+        "/root/miniconda3/bin/conda",
+        "/opt/conda/bin/conda",
+        "/usr/local/miniconda3/bin/conda",
+        "/home/bishePro/miniconda3/bin/conda",
+    ]
+    for candidate in candidates:
+        if Path(candidate).exists():
+            return candidate
+    raise RuntimeError(
+        "Conda executable not found. Set RUNNER_CONDA_EXE or CONDA_EXE to the full conda path "
+        "(example: /root/miniconda3/bin/conda)."
+    )
+
+
+def _run_method_in_conda(
+    method_key: str,
+    nodes: list,
+    edges: list,
+    features: Optional[list],
+    method_labels: Optional[list],
+    seed: int,
+    plugin_params: dict,
+) -> list:
+    conda_env_name = os.getenv("RUNNER_CONDA_ENV", "bsenv").strip() or "bsenv"
+    timeout_sec = int(os.getenv("RUNNER_METHOD_TIMEOUT_SEC", "7200"))
+
+    payload = {
+        "method_key": method_key,
+        "nodes": nodes,
+        "edges": edges,
+        "features": features,
+        "labels": method_labels,
+        "seed": seed,
+        "params": plugin_params,
+    }
+
+    env = os.environ.copy()
+    repo_root = str(_repo_root())
+    backend_root = str(_backend_root())
+    py_path_items = [repo_root, backend_root]
+    if env.get("PYTHONPATH"):
+        py_path_items.append(env["PYTHONPATH"])
+    env["PYTHONPATH"] = os.pathsep.join(py_path_items)
+
+    conda_exe = _resolve_conda_executable()
+    cmd = [
+        conda_exe,
+        "run",
+        "-n",
+        conda_env_name,
+        "python",
+        "-m",
+        "app.runner.method_subprocess",
+    ]
+    payload_file = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            suffix=".json",
+            prefix="runner_payload_",
+            delete=False,
+            encoding="utf-8",
+        ) as fp:
+            json.dump(payload, fp, ensure_ascii=False)
+            payload_file = fp.name
+
+        cmd.extend(["--payload-file", payload_file])
+        proc = subprocess.run(
+            cmd,
+            cwd=backend_root,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=timeout_sec,
+            check=False,
+        )
+    finally:
+        if payload_file:
+            try:
+                os.remove(payload_file)
+            except OSError:
+                pass
+
+    parsed = _extract_json_line(proc.stdout)
+    if parsed and parsed.get("ok"):
+        y_pred = parsed.get("y_pred")
+        if not isinstance(y_pred, list):
+            raise RuntimeError("Method runner returned invalid predictions")
+        return y_pred
+
+    if parsed and parsed.get("error"):
+        raise RuntimeError(str(parsed.get("error")))
+
+    err_text = (proc.stderr or proc.stdout or "").strip()
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"Failed to execute method in conda env '{conda_env_name}' (exit={proc.returncode}): {err_text[:800]}"
+        )
+    raise RuntimeError("Method runner returned invalid response")
 
 
 def _run_pipeline(run_id: str) -> None:
@@ -53,11 +189,18 @@ def _run_pipeline(run_id: str) -> None:
         db.commit()
 
         plugin_params = {**(run.params or {}), "dataset_key": dataset_key}
+        conda_env_name = os.getenv("RUNNER_CONDA_ENV", "bsenv").strip() or "bsenv"
+        run.logs = [*(run.logs or []), f"Dispatching method to conda env: {conda_env_name}"]
+        db.commit()
 
-        y_pred = plugin.run(
-            data=MethodInputData(nodes=nodes, edges=edges, features=features, labels=method_labels),
+        y_pred = _run_method_in_conda(
+            method_key=method_key,
+            nodes=nodes,
+            edges=edges,
+            features=features,
+            method_labels=method_labels,
             seed=run.seed,
-            params=plugin_params,
+            plugin_params=plugin_params,
         )
         if len(y_pred) != len(nodes):
             raise ValueError(
@@ -198,6 +341,7 @@ def build_version_info() -> dict:
     return {
         "backend": "0.1.0",
         "runner": os.getenv("RUNNER_BACKEND", "auto"),
+        "runner_conda_env": os.getenv("RUNNER_CONDA_ENV", "bsenv"),
         "timestamp": datetime.utcnow().isoformat() + "Z",
         "methods_count": str(len(registry.methods)),
         "datasets_count": str(len(registry.datasets)),

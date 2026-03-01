@@ -28,7 +28,24 @@
               stroke-width="2"
             />
           </svg>
-          <div v-else class="hint empty-viz">节点数大于等于 100，已关闭前端拓扑可视化。</div>
+          <div v-else-if="isVizDisabledForLargeGraph" class="empty-viz large-graph-empty">
+            <div class="empty-viz-icon">◎</div>
+            <h3>已自动切换为摘要视图</h3>
+            <p>
+              当前任务节点数为 <strong>{{ nodeCount }}</strong>，超过前端交互可视化阈值
+              <strong>{{ vizThreshold }}</strong>。
+            </p>
+            <p class="hint">为保证页面流畅，已关闭拓扑绘制。你仍可查看指标、日志与社区划分结果。</p>
+            <div class="empty-viz-meta">
+              <span class="viz-pill">Nodes: {{ nodeCount }}</span>
+              <span class="viz-pill">Threshold: {{ vizThreshold }}</span>
+            </div>
+            <div class="empty-viz-actions">
+              <button type="button" :disabled="!assignmentRows.length" @click="downloadCommunityCsv">下载社区划分 CSV</button>
+              <button type="button" @click="showLogs = !showLogs">{{ showLogs ? '收起执行日志' : '查看执行日志' }}</button>
+            </div>
+          </div>
+          <div v-else class="hint empty-viz">暂无可视化数据。</div>
           <div v-if="isRunning" class="running-overlay">
             <span class="spinner" />
             <span>任务运行中，结果会自动刷新</span>
@@ -164,6 +181,14 @@ const metricRows = computed(() => {
 const assignmentRows = computed(() => run.value?.results?.community_assignment || [])
 const vizNodes = computed(() => run.value?.results?.viz?.nodes || [])
 const vizEdges = computed(() => run.value?.results?.viz?.edges || [])
+const vizThreshold = 100
+const nodeCount = computed(() => {
+  const explicitCount = Number(run.value?.results?.node_count || 0)
+  if (Number.isFinite(explicitCount) && explicitCount > 0) return explicitCount
+  if (assignmentRows.value.length) return assignmentRows.value.length
+  return vizNodes.value.length
+})
+const isVizDisabledForLargeGraph = computed(() => !vizNodes.value.length && nodeCount.value >= vizThreshold)
 
 const posMap = computed(() => {
   const nodes = vizNodes.value

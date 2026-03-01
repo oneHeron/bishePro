@@ -425,6 +425,69 @@ details summary {
   padding: 20px;
 }
 
+.large-graph-empty {
+  place-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.large-graph-empty h3 {
+  margin: 0;
+  font-size: 24px;
+  color: #123454;
+}
+
+.large-graph-empty p {
+  margin: 0;
+  max-width: 620px;
+  line-height: 1.65;
+  color: #35506a;
+}
+
+.empty-viz-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 4px;
+  border-radius: 999px;
+  border: 2px solid #86b9d4;
+  color: #2f6a93;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  background: #f3f9ff;
+}
+
+.empty-viz-meta {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.viz-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #bcd4e6;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: #285274;
+  background: #edf5fb;
+}
+
+.empty-viz-actions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.empty-viz-actions button {
+  min-width: 160px;
+}
+
 .running-overlay {
   position: absolute;
   right: 12px;
@@ -687,6 +750,15 @@ td {
 
   .graph-canvas {
     min-height: 360px;
+  }
+
+  .large-graph-empty h3 {
+    font-size: 20px;
+  }
+
+  .empty-viz-actions button {
+    min-width: 0;
+    width: 100%;
   }
 }
 

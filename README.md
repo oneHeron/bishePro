@@ -42,6 +42,19 @@
 Redis 连接可通过 `REDIS_URL` 配置，默认 `redis://127.0.0.1:6379/0`。
 队列名可通过 `RUN_QUEUE` 配置，默认 `runs`。
 
+### 方法执行环境（默认强制 bsenv）
+
+为避免后端主进程环境与算法依赖冲突，运行任务时的方法执行会默认走：
+
+```bash
+conda run -n bsenv python -m app.runner.method_subprocess
+```
+
+可配置项：
+- `RUNNER_CONDA_ENV`：默认 `bsenv`，用于指定方法执行的 conda 环境名
+- `RUNNER_CONDA_EXE`：可选，指定 conda 可执行文件绝对路径（如 `/root/miniconda3/bin/conda`）
+- `RUNNER_METHOD_TIMEOUT_SEC`：默认 `7200`，单次方法执行超时时间（秒）
+
 启动 RQ worker（示例）：
 
 ```bash

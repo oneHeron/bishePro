@@ -59,6 +59,16 @@
       </tbody>
     </table>
   </section>
+
+  <div v-if="confirmVisible" class="confirm-mask" @click.self="closeConfirm(false)">
+    <div class="confirm-dialog" role="dialog" aria-modal="true" aria-label="删除确认">
+      <p class="confirm-message">{{ confirmMessage }}</p>
+      <div class="confirm-actions">
+        <button class="confirm-btn primary" type="button" @click="closeConfirm(true)">确定</button>
+        <button class="confirm-btn" type="button" @click="closeConfirm(false)">取消</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
@@ -73,6 +83,9 @@ const deleting = ref(false)
 const opMsg = ref('')
 const token = ref('')
 const nowTs = ref(Date.now())
+const confirmVisible = ref(false)
+const confirmMessage = ref('')
+let confirmResolver = null
 let pollTimer = null
 let clockTimer = null
 
@@ -153,6 +166,27 @@ function progressText(item) {
   return status === 'running' ? `已运行 ${formatSeconds(elapsed)}` : `已等待 ${formatSeconds(elapsed)}`
 }
 
+function openConfirm(message) {
+  confirmMessage.value = message
+  confirmVisible.value = true
+  return new Promise((resolve) => {
+    confirmResolver = resolve
+  })
+}
+
+function closeConfirm(confirmed) {
+  confirmVisible.value = false
+  if (confirmResolver) {
+    confirmResolver(Boolean(confirmed))
+    confirmResolver = null
+  }
+}
+
+function onKeydown(e) {
+  if (!confirmVisible.value) return
+  if (e.key === 'Escape') closeConfirm(false)
+}
+
 async function copyRawId(runId) {
   try {
     await navigator.clipboard.writeText(runId)
@@ -182,7 +216,8 @@ async function reloadRows() {
 
 async function deleteOne(runId) {
   if (!token.value) return
-  if (!window.confirm('确认删除这条历史记录？')) return
+  const confirmed = await openConfirm('确认删除这条历史记录？')
+  if (!confirmed) return
   deleting.value = true
   opMsg.value = ''
   try {
@@ -205,7 +240,8 @@ async function deleteOne(runId) {
 
 async function deleteSelected() {
   if (!token.value || !selectedIds.value.length) return
-  if (!window.confirm(`确认批量删除 ${selectedIds.value.length} 条历史记录？`)) return
+  const confirmed = await openConfirm(`确认批量删除 ${selectedIds.value.length} 条历史记录？`)
+  if (!confirmed) return
   deleting.value = true
   opMsg.value = ''
   try {
@@ -227,6 +263,7 @@ async function deleteSelected() {
 }
 
 onMounted(async () => {
+  window.addEventListener('keydown', onKeydown)
   token.value = getToken()
   await reloadRows()
   pollTimer = setInterval(() => {
@@ -240,7 +277,59 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  window.removeEventListener('keydown', onKeydown)
   if (pollTimer) clearInterval(pollTimer)
   if (clockTimer) clearInterval(clockTimer)
 })
 </script>
+
+<style scoped>
+.confirm-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(11, 18, 28, 0.45);
+  padding: 24px;
+}
+
+.confirm-dialog {
+  width: min(420px, calc(100vw - 48px));
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 20px;
+  box-shadow: 0 18px 42px rgba(11, 18, 28, 0.24);
+}
+
+.confirm-message {
+  margin: 0;
+  color: #0b243c;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.confirm-btn {
+  min-width: 72px;
+  border: 1px solid #9ddde5;
+  border-radius: 999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  background: #a7ecf4;
+  color: #0c4c5e;
+}
+
+.confirm-btn.primary {
+  border-color: #0a7f99;
+  background: #0a7f99;
+  color: #ffffff;
+}
+</style>
