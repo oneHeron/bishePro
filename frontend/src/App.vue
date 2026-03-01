@@ -36,6 +36,7 @@
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { clearAuth, getToken, getUsername } from './stores/auth'
+import { clearRunHistory } from './stores/history'
 
 const route = useRoute()
 const router = useRouter()
@@ -49,6 +50,7 @@ function refreshAuth() {
 
 function logout() {
   clearAuth()
+  clearRunHistory()
   refreshAuth()
   router.push('/auth')
 }

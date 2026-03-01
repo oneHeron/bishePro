@@ -1,7 +1,11 @@
 <template>
   <section class="run-view">
     <h1>Submit a New Task</h1>
-    <p v-if="!token" class="msg">未登录：当前只能配置任务，提交前请先登录。</p>
+    <div v-if="!token" class="login-tip">
+      <strong>当前未登录。</strong>
+      你可以先浏览和配置任务参数，提交前需要登录账号。
+      <RouterLink class="login-tip-link" :to="{ path: '/auth', query: { redirect: '/run' } }">去登录</RouterLink>
+    </div>
     <p v-if="loading" class="hint">正在加载方法、数据集和指标...</p>
     <p v-if="loadError" class="msg">{{ loadError }}</p>
 
@@ -111,7 +115,18 @@
         </label>
       </details>
 
-      <button class="submit-btn" type="button" :disabled="submitDisabled" @click="submitRun">Submit Task</button>
+      <div v-if="!token" class="submit-login-tip">
+        <span class="hint">提交任务需要登录后才能执行。</span>
+        <RouterLink class="login-tip-link" :to="{ path: '/auth', query: { redirect: '/run' } }">立即登录</RouterLink>
+      </div>
+      <button v-if="token" class="submit-btn" type="button" :disabled="submitDisabled" @click="submitRun">Submit Task</button>
+      <RouterLink
+        v-else
+        class="auth-btn submit-login-btn"
+        :to="{ path: '/auth', query: { redirect: '/run' } }"
+      >
+        Login to Submit
+      </RouterLink>
       <p v-if="paramErrorMessage" class="msg">{{ paramErrorMessage }}</p>
       <p :class="messageClass">{{ msg }}</p>
     </article>
@@ -120,7 +135,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { api } from '../api/client'
 import { getToken } from '../stores/auth'
 import { pushRunId } from '../stores/history'
@@ -322,7 +337,7 @@ const hasParamErrors = computed(() => Object.keys(paramErrors.value).length > 0)
 const paramErrorMessage = computed(() => (hasParamErrors.value ? '请先修正 Method Parameters 中的错误' : ''))
 
 const submitDisabled = computed(
-  () => !token.value || loading.value || !!loadError.value || !form.method_key || !form.dataset_key || !form.metric_keys.length || hasParamErrors.value
+  () => loading.value || !!loadError.value || !form.method_key || !form.dataset_key || !form.metric_keys.length || hasParamErrors.value
 )
 
 const messageClass = computed(() => (msg.value.startsWith('提交成功') ? 'ok' : 'msg'))

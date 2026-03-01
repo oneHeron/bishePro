@@ -2,15 +2,20 @@
   <section class="history-view card">
     <h1>Run History</h1>
     <p class="hint">历史记录按时间展示（YYYY-MM-DD HH:mm:ss），越新越靠前。</p>
+    <div v-if="!token" class="login-tip">
+      <strong>尚未登录。</strong>
+      登录后可查看你的运行历史、状态和耗时。
+      <RouterLink class="login-tip-link" :to="{ path: '/auth', query: { redirect: '/history' } }">立即登录</RouterLink>
+    </div>
     <div class="history-actions">
       <label class="history-select-all">
-        <input v-model="selectAll" type="checkbox" :disabled="!rows.length" />
+        <input v-model="selectAll" type="checkbox" :disabled="!rows.length || !token" />
         全选
       </label>
-      <button type="button" :disabled="!selectedIds.length || deleting" @click="deleteSelected">
+      <button type="button" :disabled="!selectedIds.length || deleting || !token" @click="deleteSelected">
         批量删除 ({{ selectedIds.length }})
       </button>
-      <button type="button" :disabled="deleting" @click="reloadRows">刷新</button>
+      <button type="button" :disabled="deleting || !token" @click="reloadRows">刷新</button>
       <span class="hint">{{ opMsg }}</span>
     </div>
 
@@ -20,6 +25,7 @@
           <th style="width: 44px;"></th>
           <th>Timestamp</th>
           <th>显示ID</th>
+          <th>进度</th>
           <th>Method</th>
           <th>Dataset</th>
           <th>Status</th>
@@ -34,15 +40,21 @@
             <RouterLink :to="`/result/${item.run_id}`" :title="item.run_id">{{ displayRunId(item.run_id) }}</RouterLink>
             <button class="copy-btn" type="button" @click="copyRawId(item.run_id)">复制</button>
           </td>
+          <td>
+            <div class="run-progress-cell">
+              <span class="status-pill" :class="statusPillClass(item.status)">{{ statusLabel(item.status) }}</span>
+              <span class="hint">{{ progressText(item) }}</span>
+            </div>
+          </td>
           <td>{{ item.method_key || '-' }}</td>
           <td>{{ item.dataset_key || '-' }}</td>
-          <td>{{ item.status || 'local' }}</td>
+          <td>{{ item.status || '-' }}</td>
           <td>
-            <button class="copy-btn" type="button" :disabled="deleting" @click="deleteOne(item.run_id)">删除</button>
+            <button class="copy-btn" type="button" :disabled="deleting || !token" @click="deleteOne(item.run_id)">删除</button>
           </td>
         </tr>
         <tr v-if="!rows.length">
-          <td colspan="7">暂无历史记录</td>
+          <td colspan="8">暂无历史记录</td>
         </tr>
       </tbody>
     </table>
@@ -50,17 +62,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api } from '../api/client'
 import { getToken } from '../stores/auth'
-import { getRunHistory } from '../stores/history'
 
 const rows = ref([])
 const selectedIds = ref([])
 const deleting = ref(false)
 const opMsg = ref('')
 const token = ref('')
+const nowTs = ref(Date.now())
+let pollTimer = null
+let clockTimer = null
 
 const selectAll = computed({
   get() {
@@ -94,6 +108,51 @@ function displayRunId(runId) {
   return `${date} ${time} #${suffix}`
 }
 
+function statusLabel(status) {
+  if (status === 'pending') return '排队中'
+  if (status === 'running') return '运行中'
+  if (status === 'finished') return '已完成'
+  if (status === 'failed') return '运行失败'
+  return '未知'
+}
+
+function statusPillClass(status) {
+  if (status === 'finished') return 'is-finished'
+  if (status === 'failed') return 'is-failed'
+  if (status === 'running') return 'is-running'
+  return 'is-pending'
+}
+
+function formatSeconds(sec) {
+  if (!Number.isFinite(sec) || sec < 0) return '-'
+  if (sec < 60) return `${sec.toFixed(1)}s`
+  const min = Math.floor(sec / 60)
+  const rest = sec % 60
+  return `${min}m ${rest.toFixed(1)}s`
+}
+
+function runDurationSec(item) {
+  if (typeof item?.duration_sec === 'number' && item.duration_sec >= 0) return item.duration_sec
+  const startedAt = Number(item?.started_at_ts || 0)
+  const finishedAt = Number(item?.finished_at_ts || 0)
+  if (!startedAt || !finishedAt || finishedAt < startedAt) return null
+  return (finishedAt - startedAt) / 1000
+}
+
+function progressText(item) {
+  if (!item) return '-'
+  const status = item.status
+  if (status === 'finished' || status === 'failed') {
+    const duration = runDurationSec(item)
+    return duration === null ? '已结束' : `总耗时 ${formatSeconds(duration)}`
+  }
+
+  const baseTs = status === 'running' ? Number(item.started_at_ts || item.created_at_ts || 0) : Number(item.created_at_ts || 0)
+  if (!baseTs) return status === 'running' ? '运行中' : '等待中'
+  const elapsed = Math.max(0, (nowTs.value - baseTs) / 1000)
+  return status === 'running' ? `已运行 ${formatSeconds(elapsed)}` : `已等待 ${formatSeconds(elapsed)}`
+}
+
 async function copyRawId(runId) {
   try {
     await navigator.clipboard.writeText(runId)
@@ -107,15 +166,17 @@ async function reloadRows() {
   selectedIds.value = []
   opMsg.value = ''
   if (!token.value) {
-    rows.value = getRunHistory()
+    rows.value = []
+    opMsg.value = '请先登录后查看运行历史'
     return
   }
 
   try {
     const serverRuns = await api.getMyRuns()
     rows.value = serverRuns.sort((a, b) => (b.created_at_ts || 0) - (a.created_at_ts || 0))
-  } catch {
-    rows.value = getRunHistory()
+  } catch (err) {
+    rows.value = []
+    opMsg.value = err.message || '后端不可用，无法获取历史记录'
   }
 }
 
@@ -166,6 +227,20 @@ async function deleteSelected() {
 }
 
 onMounted(async () => {
+  token.value = getToken()
   await reloadRows()
+  pollTimer = setInterval(() => {
+    if (!token.value) return
+    reloadRows()
+  }, 5000)
+  clockTimer = setInterval(() => {
+    nowTs.value = Date.now()
+    token.value = getToken()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (pollTimer) clearInterval(pollTimer)
+  if (clockTimer) clearInterval(clockTimer)
 })
 </script>

@@ -549,6 +549,86 @@ td {
   margin: 0;
 }
 
+.login-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #c8d9e7;
+  border-radius: 10px;
+  background: #f0f7fd;
+  color: #244d6e;
+  flex-wrap: wrap;
+}
+
+.login-tip-link {
+  color: #1f5c85;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-tip-link:hover {
+  text-decoration: underline;
+}
+
+.submit-login-tip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+.submit-login-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 220px;
+  margin-top: 6px;
+}
+
+.run-progress-cell {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.status-pill.is-pending {
+  color: #7a5f18;
+  background: #fff7e3;
+  border-color: #eed8a1;
+}
+
+.status-pill.is-running {
+  color: #174c72;
+  background: #e7f3fc;
+  border-color: #bfd7ea;
+}
+
+.status-pill.is-finished {
+  color: #1f6b3f;
+  background: #e9f8ee;
+  border-color: #c2e8cf;
+}
+
+.status-pill.is-failed {
+  color: #8e302c;
+  background: #fdeceb;
+  border-color: #f2c0bd;
+}
+
 .logs-card {
   margin-top: 12px;
 }

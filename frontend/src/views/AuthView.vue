@@ -16,11 +16,12 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { api } from '../api/client'
 import { getUsername, setAuth } from '../stores/auth'
 
 const route = useRoute()
+const router = useRouter()
 const form = reactive({ username: '', password: '' })
 const username = ref(getUsername())
 const msg = ref('')
@@ -37,7 +38,7 @@ async function submit(action) {
     msg.value = `${action} 成功`
     ok.value = true
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
-    window.location.assign(redirect)
+    router.replace(redirect)
   } catch (err) {
     msg.value = err.message || '请求失败'
     ok.value = false

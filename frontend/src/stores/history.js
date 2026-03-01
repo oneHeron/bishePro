@@ -32,3 +32,7 @@ export function getRunHistory() {
     return []
   }
 }
+
+export function clearRunHistory() {
+  localStorage.removeItem(RUN_HISTORY_KEY)
+}
