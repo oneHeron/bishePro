@@ -417,10 +417,13 @@ details summary {
 
 .graph-canvas {
   position: relative;
-  min-height: 520px;
+  min-height: 460px;
   border-radius: 10px;
   border: 1px solid var(--line-soft);
-  background: linear-gradient(180deg, #f8fbfe, #edf4fa);
+  background:
+    radial-gradient(circle at 16% 14%, rgba(76, 128, 170, 0.1) 0%, rgba(76, 128, 170, 0) 35%),
+    radial-gradient(circle at 78% 76%, rgba(82, 162, 132, 0.11) 0%, rgba(82, 162, 132, 0) 36%),
+    linear-gradient(180deg, #f8fbfe, #edf4fa);
   overflow: hidden;
 }
 
@@ -431,6 +434,37 @@ details summary {
 .graph-svg {
   width: 100%;
   height: 100%;
+}
+
+.community-halo-layer circle {
+  stroke: rgba(72, 104, 132, 0.18);
+  stroke-width: 1.2;
+}
+
+.edge-layer path {
+  stroke-linecap: round;
+  mix-blend-mode: multiply;
+}
+
+.node-layer g {
+  transition: transform 0.22s ease;
+}
+
+.node-id-label {
+  font-size: 8px;
+  fill: #ffffff;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: rgba(28, 54, 74, 0.35);
+  stroke-width: 1.2px;
+  letter-spacing: 0.1px;
+}
+
+.community-label-layer text {
+  font-size: 11px;
+  fill: #3b5a74;
+  font-weight: 700;
+  letter-spacing: 0.4px;
 }
 
 .empty-viz {

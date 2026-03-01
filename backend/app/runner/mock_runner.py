@@ -575,7 +575,7 @@ def _run_pipeline(run_id: str) -> None:
             {"node": node, "community": int(y_pred[idx])} for idx, node in enumerate(nodes)
         ]
         viz = None
-        if len(nodes) < 100:
+        if len(nodes) <= 200:
             node_set = set(nodes)
             viz = {
                 "nodes": community_assignment,
@@ -620,7 +620,38 @@ def _run_pipeline(run_id: str) -> None:
         db.close()
 
 
-def _try_enqueue_rq(run_id: str) -> bool:
+def _resolve_rq_queue_name(run: Run) -> str:
+    run_queue = (os.getenv("RUN_QUEUE") or "runs").strip() or "runs"
+    cpu_queue = (os.getenv("RUN_QUEUE_CPU") or "").strip()
+    gpu_queue = (os.getenv("RUN_QUEUE_GPU") or "").strip()
+
+    # Backward compatibility: if no split queues are configured, keep original single queue behavior.
+    if not cpu_queue and not gpu_queue:
+        return run_queue
+
+    cpu_queue = cpu_queue or run_queue
+    gpu_queue = gpu_queue or cpu_queue
+
+    params = run.params or {}
+    run_mode = str(params.get("run_mode", "local") or "local").strip().lower()
+    remote = params.get("remote") if isinstance(params.get("remote"), dict) else {}
+    remote_ip = str((remote or {}).get("ip", "")).strip()
+    if run_mode == "remote" and remote_ip:
+        target = re.sub(r"[^a-zA-Z0-9]+", "-", remote_ip).strip("-").lower() or "remote"
+        remote_cpu_tpl = (os.getenv("RUN_QUEUE_REMOTE_CPU") or f"remote-{target}-cpu").strip()
+        remote_gpu_tpl = (os.getenv("RUN_QUEUE_REMOTE_GPU") or f"remote-{target}-gpu").strip()
+        cpu_queue = remote_cpu_tpl.replace("{target}", target)
+        gpu_queue = remote_gpu_tpl.replace("{target}", target)
+
+    method_key = str(run.method_id or run.method_key or "").strip().lower()
+    requested_gpu = _as_bool(params.get("use_gpu", False))
+    method_meta = registry.methods.get(method_key)
+    requires_gpu = bool(getattr(method_meta, "requires_gpu", False)) if method_meta else False
+    use_gpu_queue = requested_gpu or (requires_gpu and not _as_bool(params.get("force_cpu", False)))
+    return gpu_queue if use_gpu_queue else cpu_queue
+
+
+def _try_enqueue_rq(run_id: str, queue_name: str) -> bool:
     try:
         from redis import Redis
         from rq import Queue
@@ -628,11 +659,11 @@ def _try_enqueue_rq(run_id: str) -> bool:
         return False
 
     redis_url = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0")
-    queue_name = os.getenv("RUN_QUEUE", "runs")
+    selected_queue = str(queue_name).strip() or (os.getenv("RUN_QUEUE", "runs").strip() or "runs")
 
     try:
         conn = Redis.from_url(redis_url)
-        q = Queue(queue_name, connection=conn)
+        q = Queue(selected_queue, connection=conn)
         q.enqueue("app.runner.mock_runner.execute_run_job", run_id)
         return True
     except Exception:
@@ -641,18 +672,34 @@ def _try_enqueue_rq(run_id: str) -> bool:
 
 def submit_run(run: Run) -> str:
     backend = os.getenv("RUNNER_BACKEND", "auto").lower()
+    params = run.params or {}
+    run_mode = str(params.get("run_mode", "local") or "local").strip().lower()
+    remote = params.get("remote") if isinstance(params.get("remote"), dict) else {}
+    remote_ip = str((remote or {}).get("ip", "")).strip()
+    remote_requested = run_mode == "remote"
+    remote_config_ok = remote_requested and bool(remote_ip)
 
-    if backend in {"inline", "sync"}:
+    if backend in {"inline", "sync"} and not remote_requested:
         _run_pipeline(run.run_id)
         return run.run_id
+    if backend in {"inline", "sync"} and remote_requested:
+        raise RuntimeError("Remote mode requires RQ backend and cannot run in inline mode.")
 
     if backend in {"auto", "rq", "redis"}:
-        enqueued = _try_enqueue_rq(run.run_id)
+        queue_name = _resolve_rq_queue_name(run)
+        enqueued = _try_enqueue_rq(run.run_id, queue_name=queue_name)
         if enqueued:
             return run.run_id
+        if remote_requested:
+            if not remote_config_ok:
+                raise RuntimeError("Remote mode requires remote.ip in params.remote.")
+            raise RuntimeError("Remote queue unavailable; please check REDIS_URL and remote worker queue binding.")
         if backend in {"rq", "redis"}:
             # Explicitly requested queue backend but unavailable.
             raise RuntimeError("RQ/Redis backend unavailable; please check REDIS_URL and worker status")
+
+    if remote_requested:
+        raise RuntimeError("Remote mode requires RQ backend; local thread fallback is disabled for remote runs.")
 
     # Fallback local async thread
     thread = threading.Thread(target=_run_pipeline, args=(run.run_id,), daemon=True)

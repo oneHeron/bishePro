@@ -82,6 +82,16 @@ def _validate_run(payload: RunCreateRequest) -> None:
                 detail=f"Metric {metric.name} requires labels, but dataset {dataset.name} has no labels",
             )
 
+    params = payload.params or {}
+    run_mode = str(params.get("run_mode", "local") or "local").strip().lower()
+    if run_mode == "remote":
+        remote = params.get("remote")
+        if not isinstance(remote, dict):
+            raise HTTPException(status_code=400, detail="Remote mode requires params.remote object")
+        remote_ip = str(remote.get("ip", "")).strip()
+        if not remote_ip:
+            raise HTTPException(status_code=400, detail="Remote mode requires params.remote.ip")
+
 
 @router.post("", response_model=RunCreateResponse)
 def create_run(

@@ -5,28 +5,77 @@
     <div class="result-grid">
       <article class="graph-card">
         <div class="graph-canvas" :class="{ running: isRunning }">
-          <svg v-if="vizNodes.length" class="graph-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
-            <line
-              v-for="(edge, idx) in vizEdges"
-              :key="`e-${idx}`"
-              :x1="posMap[edge[0]]?.x || 0"
-              :y1="posMap[edge[0]]?.y || 0"
-              :x2="posMap[edge[1]]?.x || 0"
-              :y2="posMap[edge[1]]?.y || 0"
-              stroke="#95a9b8"
-              stroke-opacity="0.45"
-              stroke-width="2"
-            />
-            <circle
-              v-for="node in vizNodes"
-              :key="`n-${node.node}`"
-              :cx="posMap[node.node]?.x || 0"
-              :cy="posMap[node.node]?.y || 0"
-              :fill="communityColor(node.community)"
-              r="9"
-              stroke="#ffffff"
-              stroke-width="2"
-            />
+          <svg v-if="canRenderViz" class="graph-svg" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <linearGradient id="graphBg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#f8fbff" />
+                <stop offset="58%" stop-color="#eff5fb" />
+                <stop offset="100%" stop-color="#e8f0f7" />
+              </linearGradient>
+              <filter id="nodeShadow" x="-30%" y="-30%" width="160%" height="160%">
+                <feDropShadow dx="0" dy="1.5" stdDeviation="1.8" flood-color="#274b68" flood-opacity="0.28" />
+              </filter>
+            </defs>
+            <rect x="0" y="0" width="1000" height="700" fill="url(#graphBg)" />
+            <g class="community-halo-layer">
+              <circle
+                v-for="bubble in communityBubbles"
+                :key="`bubble-${bubble.community}`"
+                :cx="bubble.x"
+                :cy="bubble.y"
+                :r="bubble.r"
+                :fill="communityColorAlpha(bubble.community, 0.13)"
+              />
+            </g>
+            <g class="edge-layer">
+              <path
+                v-for="(edge, idx) in edgeRenderList"
+                :key="`e-${idx}`"
+                :d="edge.d"
+                fill="none"
+                :stroke="edge.intra ? '#8da4b8' : '#6d859a'"
+                :stroke-opacity="edge.intra ? 0.42 : 0.26"
+                :stroke-width="edge.intra ? 1.9 : 1.5"
+              />
+            </g>
+            <g class="node-layer">
+              <g v-for="node in vizNodes" :key="`n-${node.node}`" filter="url(#nodeShadow)">
+                <circle
+                  :cx="posMap[node.node]?.x || 0"
+                  :cy="posMap[node.node]?.y || 0"
+                  :fill="communityColorAlpha(node.community, 0.18)"
+                  r="12.5"
+                />
+                <circle
+                  :cx="posMap[node.node]?.x || 0"
+                  :cy="posMap[node.node]?.y || 0"
+                  :fill="communityColor(node.community)"
+                  r="9.6"
+                  stroke="#f7fbff"
+                  stroke-width="2.3"
+                />
+                <text
+                  class="node-id-label"
+                  :x="posMap[node.node]?.x || 0"
+                  :y="posMap[node.node]?.y || 0"
+                  text-anchor="middle"
+                  dominant-baseline="middle"
+                >
+                  {{ node.node }}
+                </text>
+              </g>
+            </g>
+            <g class="community-label-layer">
+              <text
+                v-for="bubble in communityBubbles"
+                :key="`label-${bubble.community}`"
+                :x="bubble.x"
+                :y="bubble.y - bubble.r - 8"
+                text-anchor="middle"
+              >
+                C{{ bubble.community }}
+              </text>
+            </g>
           </svg>
           <div v-else-if="isVizDisabledForLargeGraph" class="empty-viz large-graph-empty">
             <div class="empty-viz-icon">◎</div>
@@ -240,16 +289,22 @@ const fullErrorDetail = computed(() => {
 const actionMsgClass = computed(() => (actionMsg.value.startsWith('已') ? 'ok' : 'msg'))
 
 const assignmentRows = computed(() => run.value?.results?.community_assignment || [])
-const vizNodes = computed(() => run.value?.results?.viz?.nodes || [])
-const vizEdges = computed(() => run.value?.results?.viz?.edges || [])
-const vizThreshold = 100
+const rawVizNodes = computed(() => run.value?.results?.viz?.nodes || [])
+const rawVizEdges = computed(() => run.value?.results?.viz?.edges || [])
+const vizThreshold = 200
 const nodeCount = computed(() => {
   const explicitCount = Number(run.value?.results?.node_count || 0)
   if (Number.isFinite(explicitCount) && explicitCount > 0) return explicitCount
   if (assignmentRows.value.length) return assignmentRows.value.length
-  return vizNodes.value.length
+  return rawVizNodes.value.length
 })
-const isVizDisabledForLargeGraph = computed(() => !vizNodes.value.length && nodeCount.value >= vizThreshold)
+const canRenderViz = computed(() => nodeCount.value <= vizThreshold && (assignmentRows.value.length > 0 || rawVizNodes.value.length > 0))
+const vizNodes = computed(() => {
+  if (!canRenderViz.value) return []
+  return assignmentRows.value.length ? assignmentRows.value : rawVizNodes.value
+})
+const vizEdges = computed(() => (canRenderViz.value ? rawVizEdges.value : []))
+const isVizDisabledForLargeGraph = computed(() => !canRenderViz.value && nodeCount.value > vizThreshold)
 
 const posMap = computed(() => {
   const nodes = vizNodes.value
@@ -266,31 +321,142 @@ const posMap = computed(() => {
   const out = {}
   const centerX = 500
   const centerY = 350
-  const ringR = Math.min(280, 120 + communities.length * 20)
+  const ringR = Math.min(245, 95 + communities.length * 24)
+  const golden = Math.PI * (3 - Math.sqrt(5))
 
   communities.forEach((community, gi) => {
     const list = groups.get(community)
-    const angle = (2 * Math.PI * gi) / Math.max(1, communities.length)
-    const gx = centerX + ringR * Math.cos(angle)
-    const gy = centerY + ringR * Math.sin(angle)
-    const localR = Math.max(28, 14 + list.length * 1.8)
+    const angle = golden * gi - Math.PI / 2
+    const gx = centerX + ringR * 1.1 * Math.cos(angle)
+    const gy = centerY + ringR * 0.82 * Math.sin(angle)
+    const localR = Math.max(24, 10 + list.length * 2.25)
 
     list.forEach((node, ni) => {
-      const a = (2 * Math.PI * ni) / Math.max(1, list.length)
+      const t = (golden * (ni + 1)) % (2 * Math.PI)
+      const spiral = localR * Math.sqrt((ni + 1) / (list.length + 0.8))
+      const jitter = nodeHash(node.node) % 9
       out[node.node] = {
-        x: gx + localR * Math.cos(a),
-        y: gy + localR * Math.sin(a)
+        x: gx + (spiral + jitter * 0.16) * Math.cos(t),
+        y: gy + (spiral + jitter * 0.12) * Math.sin(t)
       }
     })
   })
 
-  return out
+  const points = Object.values(out)
+  if (!points.length) return out
+
+  let minX = Infinity
+  let minY = Infinity
+  let maxX = -Infinity
+  let maxY = -Infinity
+  for (const p of points) {
+    if (p.x < minX) minX = p.x
+    if (p.y < minY) minY = p.y
+    if (p.x > maxX) maxX = p.x
+    if (p.y > maxY) maxY = p.y
+  }
+
+  const boxW = Math.max(1, maxX - minX)
+  const boxH = Math.max(1, maxY - minY)
+  const viewW = 1000
+  const viewH = 700
+  const pad = 70
+  const scale = Math.min((viewW - pad * 2) / boxW, (viewH - pad * 2) / boxH)
+  const fitScale = Math.max(1, Math.min(scale, 4))
+  const offsetX = (viewW - boxW * fitScale) / 2 - minX * fitScale
+  const offsetY = (viewH - boxH * fitScale) / 2 - minY * fitScale
+
+  const fitted = {}
+  for (const [node, p] of Object.entries(out)) {
+    fitted[node] = {
+      x: p.x * fitScale + offsetX,
+      y: p.y * fitScale + offsetY
+    }
+  }
+  return fitted
+})
+
+const communityBubbles = computed(() => {
+  const nodes = vizNodes.value
+  if (!nodes.length) return []
+  const byCommunity = new Map()
+  for (const node of nodes) {
+    const c = Number(node.community)
+    if (!byCommunity.has(c)) byCommunity.set(c, [])
+    byCommunity.get(c).push(node)
+  }
+  const bubbles = []
+  for (const [community, list] of byCommunity.entries()) {
+    let sx = 0
+    let sy = 0
+    for (const item of list) {
+      sx += posMap.value[item.node]?.x || 0
+      sy += posMap.value[item.node]?.y || 0
+    }
+    const cx = sx / Math.max(1, list.length)
+    const cy = sy / Math.max(1, list.length)
+    let maxD = 16
+    for (const item of list) {
+      const px = posMap.value[item.node]?.x || cx
+      const py = posMap.value[item.node]?.y || cy
+      const d = Math.hypot(px - cx, py - cy)
+      if (d > maxD) maxD = d
+    }
+    bubbles.push({ community, x: cx, y: cy, r: Math.min(98, maxD + 24) })
+  }
+  return bubbles
+})
+
+const edgeRenderList = computed(() => {
+  const nodeCommunity = {}
+  for (const node of vizNodes.value) nodeCommunity[node.node] = Number(node.community)
+  return vizEdges.value
+    .map((edge, idx) => {
+      const [src, dst] = edge
+      const p1 = posMap.value[src]
+      const p2 = posMap.value[dst]
+      if (!p1 || !p2) return null
+      const mx = (p1.x + p2.x) / 2
+      const my = (p1.y + p2.y) / 2
+      const dx = p2.x - p1.x
+      const dy = p2.y - p1.y
+      const len = Math.hypot(dx, dy) || 1
+      const nx = -dy / len
+      const ny = dx / len
+      const bendBase = ((idx % 5) - 2) * 3.6
+      const bend = bendBase + ((nodeHash(`${src}|${dst}`) % 7) - 3)
+      const cx = mx + nx * bend
+      const cy = my + ny * bend
+      return {
+        intra: nodeCommunity[src] === nodeCommunity[dst],
+        d: `M ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} Q ${cx.toFixed(2)} ${cy.toFixed(2)} ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`
+      }
+    })
+    .filter(Boolean)
 })
 
 function communityColor(c) {
   const palette = ['#4a81bf', '#57b589', '#e0bf67', '#cf6157', '#8a9aaa', '#58a3d1', '#b57dd6', '#6bbf85', '#e59a4d']
   const idx = Math.abs(Number(c || 0)) % palette.length
   return palette[idx]
+}
+
+function communityColorAlpha(c, alpha = 0.2) {
+  const hex = communityColor(c).replace('#', '')
+  const n = parseInt(hex, 16)
+  const r = (n >> 16) & 255
+  const g = (n >> 8) & 255
+  const b = n & 255
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+function nodeHash(value) {
+  const text = String(value || '')
+  let h = 0
+  for (let i = 0; i < text.length; i += 1) {
+    h = (h * 33 + text.charCodeAt(i)) >>> 0
+  }
+  return h
 }
 
 function formatTime(ts) {

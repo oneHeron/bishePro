@@ -41,6 +41,20 @@
 
 Redis 连接可通过 `REDIS_URL` 配置，默认 `redis://127.0.0.1:6379/0`。
 队列名可通过 `RUN_QUEUE` 配置，默认 `runs`。
+如需 CPU/GPU 分流，配置：
+- `RUN_QUEUE_CPU`（示例：`cpu`）
+- `RUN_QUEUE_GPU`（示例：`gpu`）
+
+当未配置 `RUN_QUEUE_CPU/RUN_QUEUE_GPU` 时，系统保持原行为（全部进入 `RUN_QUEUE` 单队列）。
+
+`Run` 页面选择 `Remote Server (Beta)` 时，后端会根据 `params.remote.ip` 动态路由：
+- CPU 任务默认进入：`remote-<ip-normalized>-cpu`
+- GPU 任务默认进入：`remote-<ip-normalized>-gpu`
+
+其中 `<ip-normalized>` 为 IP/主机名的简化标识（非字母数字会转 `-`）。
+也可通过环境变量覆盖模板：
+- `RUN_QUEUE_REMOTE_CPU`（支持 `{target}` 占位符）
+- `RUN_QUEUE_REMOTE_GPU`（支持 `{target}` 占位符）
 
 ### 方法执行环境（默认强制 bsenv）
 
@@ -63,6 +77,52 @@ export REDIS_URL=redis://127.0.0.1:6379/0
 export RUN_QUEUE=runs
 python -m rq worker runs
 ```
+
+### 远程 Linux GPU 服务器部署（推荐，最小改动）
+
+不需要引入 Celery。当前项目已内置 RQ/Redis，推荐做法是：
+- API 服务机仅负责入队
+- 远程 GPU Linux 服务器部署同版本代码并启动 `gpu` 队列 worker
+
+1. API 服务机（提交任务入口）：
+
+```bash
+cd backend
+export RUNNER_BACKEND=rq
+export REDIS_URL=redis://<redis-host>:6379/0
+export RUN_QUEUE_CPU=cpu
+export RUN_QUEUE_GPU=gpu
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+2. 远程 GPU Linux 服务器（执行 GPU 任务）：
+
+```bash
+cd backend
+conda activate bsenv
+export REDIS_URL=redis://<redis-host>:6379/0
+export RUN_QUEUE_CPU=cpu
+export RUN_QUEUE_GPU=gpu
+# 远程模式（按 IP 绑定）示例：
+# 若前端填写 Server IP=192.168.1.100，则队列名为 remote-192-168-1-100-gpu
+python -m rq worker remote-192-168-1-100-gpu
+```
+
+3. 本地/普通 CPU 机器（可选，执行 CPU 任务）：
+
+```bash
+cd backend
+conda activate bsenv
+export REDIS_URL=redis://<redis-host>:6379/0
+python -m rq worker cpu
+# 若要消费某台远程主机的 CPU 队列：
+# python -m rq worker remote-192-168-1-100-cpu
+```
+
+说明：
+- 前端参数 `use_gpu=1`（或方法 `requires_gpu=true`）会进入 `gpu` 队列。
+- `use_gpu=0` 会进入 `cpu` 队列。
+- 若未配置 CPU/GPU 分流队列，系统仍走原单队列模式，不影响历史功能。
 
 Run 表当前包含（含兼容字段）：
 - `run_id`, `user_id`

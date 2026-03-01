@@ -28,6 +28,11 @@
           · {{ methodCompatText(selectedMethod) }}
           · {{ selectedMethod.algorithm_note || selectedMethod.description }}
         </p>
+        <p v-if="selectedMethod" class="hint method-note">
+          调度提示：该任务预计进入 <strong>{{ expectedQueueLabel }}</strong> 队列
+          <span v-if="expectedQueueName.endsWith('-gpu') || expectedQueueName === 'gpu'">（GPU Worker）</span>
+          <span v-else>（CPU Worker）</span>
+        </p>
       </article>
 
       <article class="step-card">
@@ -294,6 +299,21 @@ const methodCapabilityMap = {
 
 const selectedMethod = computed(() => methods.value.find((item) => item.key === form.method_key))
 const selectedDataset = computed(() => datasets.value.find((item) => item.key === form.dataset_key))
+const expectedQueueName = computed(() => {
+  if (!selectedMethod.value) return 'cpu'
+  const hasGpuFlag = Object.prototype.hasOwnProperty.call(methodParams, 'use_gpu_flag')
+  const gpuByFlag = hasGpuFlag ? Number(methodParams.use_gpu_flag || 0) === 1 : false
+  const gpuByMethod = selectedMethod.value.requires_gpu === true
+  const device = gpuByFlag || gpuByMethod ? 'gpu' : 'cpu'
+  if (runMode.value !== 'remote') return device
+  const target = String(remote.ip || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'remote'
+  return `remote-${target}-${device}`
+})
+const expectedQueueLabel = computed(() => expectedQueueName.value)
 const filteredMethods = computed(() => {
   if (methodFilter.value === 'attributed') {
     return methods.value.filter((m) => methodSupports(m, 'attributed'))
@@ -689,6 +709,11 @@ async function submitRun() {
 
   if (hasParamErrors.value) {
     msg.value = 'Method 参数校验失败，请修正后再提交'
+    return
+  }
+
+  if (runMode.value === 'remote' && !String(remote.ip || '').trim()) {
+    msg.value = 'Remote 模式必须填写 Server IP'
     return
   }
 
