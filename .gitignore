@@ -1,0 +1,86 @@
+# =========================
+# OS / editor junk
+# =========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+*.bak
+*.orig
+*~
+*.log
+*.pid
+*.out
+*.err
+*.seed
+*.stackdump
+
+# Windows ADS artifacts seen in this repo
+*:Zone.Identifier
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# =========================
+# Backend runtime artifacts
+# =========================
+backend/app.db
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+
+# =========================
+# Frontend (Vue/Vite)
+# =========================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Root npm cache folder in this workspace
+.npm/
+
+# =========================
+# Dataset / model artifacts
+# =========================
+# Download cache (reproducible; can re-download)
+datasets/cache/
+
+# Optional: local manual datasets (usually large/private)
+datasets/manual/
+
+# Standalone script download dirs
+dataset/
+
+# Model checkpoints / tensors
+*.pt
+*.pth
+*.pkl
+*.ckpt
+*.onnx
+
+# Method-specific generated dirs
+core_modules/methods/**/dataset/
+core_modules/methods/**/pre/
+core_modules/methods/**/pretrain/
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
