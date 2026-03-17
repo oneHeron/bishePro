@@ -13,9 +13,9 @@
       <article class="step-card">
         <h2>Step 1: Select Method</h2>
         <div class="quick-filter">
-          <button type="button" :class="{ active: methodFilter === 'all' }" @click="methodFilter = 'all'">全部</button>
-          <button type="button" :class="{ active: methodFilter === 'attributed' }" @click="methodFilter = 'attributed'">有属性</button>
-          <button type="button" :class="{ active: methodFilter === 'unattributed' }" @click="methodFilter = 'unattributed'">无属性</button>
+          <button type="button" :class="{ active: methodFilter === 'all' }" @click="setMethodFilter('all')">全部</button>
+          <button type="button" :class="{ active: methodFilter === 'attributed' }" @click="setMethodFilter('attributed')">有属性</button>
+          <button type="button" :class="{ active: methodFilter === 'unattributed' }" @click="setMethodFilter('unattributed')">无属性</button>
         </div>
         <label>
           Method
@@ -38,10 +38,12 @@
       <article class="step-card">
         <h2>Step 2: Select Dataset</h2>
         <div class="quick-filter">
-          <button type="button" :class="{ active: datasetFilter === 'all' }" @click="datasetFilter = 'all'">全部</button>
-          <button type="button" :class="{ active: datasetFilter === 'attributed' }" @click="datasetFilter = 'attributed'">有属性</button>
-          <button type="button" :class="{ active: datasetFilter === 'unattributed' }" @click="datasetFilter = 'unattributed'">无属性</button>
+          <button type="button" :class="{ active: datasetFilter === 'all' }" @click="setDatasetFilter('all')">全部</button>
+          <button type="button" :class="{ active: datasetFilter === 'attributed' }" @click="setDatasetFilter('attributed')">有属性</button>
+          <button type="button" :class="{ active: datasetFilter === 'unattributed' }" @click="setDatasetFilter('unattributed')">无属性</button>
         </div>
+        <p v-if="datasetConstraintHint" class="hint">{{ datasetConstraintHint }}</p>
+        <p v-if="compatWarning" class="msg">{{ compatWarning }}</p>
 
         <div class="scroll-box">
           <label v-for="dataset in filteredDatasets" :key="dataset.key" class="dataset-option">
@@ -51,7 +53,7 @@
               <small>{{ datasetTag(dataset) }}</small>
             </span>
           </label>
-          <p v-if="!filteredDatasets.length" class="hint">该筛选条件下暂无数据集</p>
+          <p v-if="!filteredDatasets.length" class="hint">{{ emptyDatasetHint }}</p>
         </div>
       </article>
 
@@ -133,6 +135,7 @@
         Login to Submit
       </RouterLink>
       <p v-if="paramErrorMessage" class="msg">{{ paramErrorMessage }}</p>
+      <p v-if="compatWarning" class="msg">{{ compatWarning }}</p>
       <p :class="messageClass">{{ msg }}</p>
     </article>
   </section>
@@ -142,7 +145,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import { api } from '../api/client'
-import { getToken } from '../stores/auth'
+import { clearAuth, getToken } from '../stores/auth'
 import { pushRunId } from '../stores/history'
 
 const RUN_FORM_CACHE_KEY = 'community_platform_run_form_cache'
@@ -314,6 +317,30 @@ const expectedQueueName = computed(() => {
   return `remote-${target}-${device}`
 })
 const expectedQueueLabel = computed(() => expectedQueueName.value)
+const isSelectionCompatible = computed(() => {
+  if (!selectedMethod.value || !selectedDataset.value) return true
+  const kind = selectedDataset.value.has_features ? 'attributed' : 'unattributed'
+  return methodSupports(selectedMethod.value, kind)
+})
+const compatWarning = computed(() => {
+  if (!selectedMethod.value || !selectedDataset.value || isSelectionCompatible.value) return ''
+  const datasetKindText = selectedDataset.value.has_features ? '有属性' : '无属性'
+  const expectedDatasetKindText = selectedDataset.value.has_features ? '无属性' : '有属性'
+  return `当前方法 ${selectedMethod.value.name} 仅支持${expectedDatasetKindText}网络，与你选择的${datasetKindText}数据集不兼容。请调整后再提交。`
+})
+const datasetConstraintHint = computed(() => {
+  const method = selectedMethod.value
+  if (!method) return ''
+  const supportsAttr = methodSupports(method, 'attributed')
+  const supportsUnattr = methodSupports(method, 'unattributed')
+  if (supportsAttr && supportsUnattr) return '当前方法支持有属性/无属性数据集。'
+  if (supportsAttr) return '当前方法仅支持有属性数据集。'
+  if (supportsUnattr) return '当前方法仅支持无属性数据集。'
+  return ''
+})
+const emptyDatasetHint = computed(() => {
+  return '该筛选条件下暂无数据集'
+})
 const filteredMethods = computed(() => {
   if (methodFilter.value === 'attributed') {
     return methods.value.filter((m) => methodSupports(m, 'attributed'))
@@ -325,9 +352,10 @@ const filteredMethods = computed(() => {
 })
 
 const filteredDatasets = computed(() => {
-  if (datasetFilter.value === 'attributed') return datasets.value.filter((d) => d.has_features)
-  if (datasetFilter.value === 'unattributed') return datasets.value.filter((d) => !d.has_features)
-  return datasets.value
+  let items = datasets.value
+  if (datasetFilter.value === 'attributed') items = items.filter((d) => d.has_features)
+  if (datasetFilter.value === 'unattributed') items = items.filter((d) => !d.has_features)
+  return items
 })
 
 const currentMethodFields = computed(() => methodParamSchema[form.method_key] || [])
@@ -366,7 +394,14 @@ const hasParamErrors = computed(() => Object.keys(paramErrors.value).length > 0)
 const paramErrorMessage = computed(() => (hasParamErrors.value ? '请先修正 Method Parameters 中的错误' : ''))
 
 const submitDisabled = computed(
-  () => loading.value || !!loadError.value || !form.method_key || !form.dataset_key || !form.metric_keys.length || hasParamErrors.value
+  () =>
+    loading.value ||
+    !!loadError.value ||
+    !form.method_key ||
+    !form.dataset_key ||
+    !form.metric_keys.length ||
+    hasParamErrors.value ||
+    !isSelectionCompatible.value
 )
 
 const messageClass = computed(() => (msg.value.startsWith('提交成功') ? 'ok' : 'msg'))
@@ -396,6 +431,14 @@ function methodSupports(method, kind) {
     return method.supports_unattributed !== false
   }
   return true
+}
+
+function setMethodFilter(nextFilter) {
+  methodFilter.value = nextFilter
+}
+
+function setDatasetFilter(nextFilter) {
+  datasetFilter.value = nextFilter
 }
 
 function datasetTag(dataset) {
@@ -711,6 +754,10 @@ async function submitRun() {
     msg.value = 'Method 参数校验失败，请修正后再提交'
     return
   }
+  if (!isSelectionCompatible.value) {
+    msg.value = compatWarning.value || '当前方法与数据集不兼容，请调整后再提交'
+    return
+  }
 
   if (runMode.value === 'remote' && !String(remote.ip || '').trim()) {
     msg.value = 'Remote 模式必须填写 Server IP'
@@ -744,6 +791,13 @@ async function submitRun() {
     msg.value = `提交成功: ${result.run_id}`
     router.push(`/result/${result.run_id}`)
   } catch (err) {
+    if (String(err?.message || '').includes('Invalid or expired token')) {
+      clearAuth()
+      token.value = ''
+      msg.value = '登录已过期，请重新登录后再提交任务'
+      router.push({ path: '/auth', query: { redirect: '/run' } })
+      return
+    }
     msg.value = err.message || '提交失败'
   }
 }

@@ -8,6 +8,11 @@
         <button type="button" :class="{ active: type === 'methods' }" @click="goType('methods')">Methods</button>
         <button type="button" :class="{ active: type === 'datasets' }" @click="goType('datasets')">Datasets</button>
         <button type="button" :class="{ active: type === 'metrics' }" @click="goType('metrics')">Metrics</button>
+        <div v-if="type === 'methods' || type === 'datasets'" class="quick-filter catalog-attr-filter">
+          <button type="button" :class="{ active: attrFilter === 'all' }" @click="attrFilter = 'all'">全部</button>
+          <button type="button" :class="{ active: attrFilter === 'attributed' }" @click="attrFilter = 'attributed'">有属性</button>
+          <button type="button" :class="{ active: attrFilter === 'unattributed' }" @click="attrFilter = 'unattributed'">无属性</button>
+        </div>
         <div class="catalog-search-wrap">
           <input
             v-model.trim="searchText"
@@ -17,6 +22,9 @@
           />
         </div>
       </div>
+      <p v-if="type === 'methods' || type === 'datasets'" class="hint catalog-filter-note">
+        当前分类: {{ attrFilterLabel }}
+      </p>
 
       <p v-if="loading" class="hint">Loading {{ type }}...</p>
       <p v-else-if="!filteredItems.length" class="hint">No matched data.</p>
@@ -67,6 +75,7 @@ const methods = ref([])
 const datasets = ref([])
 const metrics = ref([])
 const searchText = ref('')
+const attrFilter = ref('all')
 
 const type = computed(() => {
   const t = route.params.type
@@ -91,10 +100,11 @@ const searchPlaceholder = computed(() => {
   return 'Search metrics by name / key / description'
 })
 const filteredItems = computed(() => {
+  const attrFiltered = items.value.filter((item) => matchAttrFilter(item))
   const keyword = normalizeText(searchText.value)
-  if (!keyword) return items.value
+  if (!keyword) return attrFiltered
   const tokens = keyword.split(/\s+/).filter(Boolean)
-  return items.value.filter((item) => {
+  return attrFiltered.filter((item) => {
     const haystack = normalizeText(
       [
         item?.name,
@@ -109,9 +119,31 @@ const filteredItems = computed(() => {
     return tokens.every((token) => haystack.includes(token))
   })
 })
+const attrFilterLabel = computed(() => {
+  if (attrFilter.value === 'attributed') return '有属性'
+  if (attrFilter.value === 'unattributed') return '无属性'
+  return '全部'
+})
 
 function normalizeText(text) {
   return String(text || '').toLowerCase()
+}
+
+function matchAttrFilter(item) {
+  if (type.value === 'metrics' || attrFilter.value === 'all') return true
+  if (type.value === 'datasets') {
+    if (attrFilter.value === 'attributed') return item.has_features === true
+    if (attrFilter.value === 'unattributed') return item.has_features !== true
+    return true
+  }
+  if (type.value === 'methods') {
+    const supportsAttr = item.supports_attributed !== false
+    const supportsUnattr = item.supports_unattributed !== false
+    if (attrFilter.value === 'attributed') return supportsAttr
+    if (attrFilter.value === 'unattributed') return supportsUnattr
+    return true
+  }
+  return true
 }
 
 function escapeHtml(text) {
@@ -214,6 +246,7 @@ function detailText(item) {
 
 function goType(nextType) {
   searchText.value = ''
+  attrFilter.value = 'all'
   router.push(`/catalog/${nextType}`)
 }
 

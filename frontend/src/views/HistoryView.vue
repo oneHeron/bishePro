@@ -5,7 +5,7 @@
     <div v-if="!token" class="login-tip">
       <strong>尚未登录。</strong>
       登录后可查看你的运行历史、状态和耗时。
-      <RouterLink class="login-tip-link" :to="{ path: '/auth', query: { redirect: '/history' } }">立即登录</RouterLink>
+      <RouterLink class="login-tip-link" :to="{ path: '/auth' }">立即登录</RouterLink>
     </div>
     <div class="history-actions">
       <label class="history-select-all">

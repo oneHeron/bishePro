@@ -37,7 +37,8 @@ async function submit(action) {
     username.value = result.username
     msg.value = `${action} 成功`
     ok.value = true
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+    const rawRedirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+    const redirect = rawRedirect === '/run' ? '/run' : '/'
     router.replace(redirect)
   } catch (err) {
     msg.value = err.message || '请求失败'

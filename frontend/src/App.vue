@@ -16,7 +16,7 @@
         <RouterLink
           v-if="!token"
           class="auth-btn"
-          :to="{ path: '/auth', query: { redirect: route.fullPath } }"
+          :to="{ path: '/auth' }"
         >
           Login/Register
         </RouterLink>
