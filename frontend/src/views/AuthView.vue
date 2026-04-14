@@ -1,13 +1,13 @@
 <template>
   <section class="auth-view card">
-    <h1>Login / Register</h1>
-    <p class="hint">Current User: {{ username || '未登录' }}</p>
+    <h1>账号登录与注册</h1>
+    <p class="hint">Account Access · 当前状态：{{ username || '未登录' }}</p>
     <form @submit.prevent="onSubmit">
-      <label>Username <input v-model="form.username" required /></label>
-      <label>Password <input v-model="form.password" type="password" required /></label>
+      <label>用户名 Username <input v-model="form.username" required /></label>
+      <label>密码 Password <input v-model="form.password" type="password" required /></label>
       <div class="btn-row">
-        <button type="button" @click="submit('register')">Register</button>
-        <button type="button" @click="submit('login')">Login</button>
+        <button type="button" @click="submit('register')">注册账号</button>
+        <button type="button" @click="submit('login')">立即登录</button>
       </div>
     </form>
     <p :class="ok ? 'ok' : 'msg'">{{ msg }}</p>
@@ -35,7 +35,7 @@ async function submit(action) {
     const result = await fn(form)
     setAuth(result.token, result.username)
     username.value = result.username
-    msg.value = `${action} 成功`
+    msg.value = action === 'register' ? '注册成功，已自动登录' : '登录成功'
     ok.value = true
     const rawRedirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
     const redirect = rawRedirect === '/run' ? '/run' : '/'

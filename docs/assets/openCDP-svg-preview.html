@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenCDP 架构图 SVG 预览</title>
+  <style>
+    body {
+      margin: 0;
+      background: #f7f4ee;
+      font-family: "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      color: #222;
+    }
+    .page {
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: 28px;
+    }
+    .grid {
+      display: grid;
+      gap: 20px;
+    }
+    .card {
+      background: #fffdfa;
+      border: 1px solid #ddd5c8;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 10px 28px rgba(36, 43, 48, 0.06);
+    }
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 20px;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: #fff;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <h1>OpenCDP 架构图预览</h1>
+    <div class="grid">
+      <section class="card">
+        <h2>基础版</h2>
+        <img src="./openCDP-overall-architecture.svg" alt="OpenCDP 基础架构图" />
+      </section>
+      <section class="card">
+        <h2>分层框图版</h2>
+        <img src="./openCDP-overall-architecture-layered.svg" alt="OpenCDP 分层框图版" />
+      </section>
+      <section class="card">
+        <h2>彩色示意图版</h2>
+        <img src="./openCDP-overall-architecture-colored.svg" alt="OpenCDP 彩色示意图版" />
+      </section>
+    </div>
+  </main>
+</body>
+</html>

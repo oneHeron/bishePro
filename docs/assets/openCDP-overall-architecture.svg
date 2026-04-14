@@ -1,0 +1,131 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: #fcfbf8; }
+      .layer { fill: #ffffff; stroke: #5d6b74; stroke-width: 2.2; stroke-dasharray: 10 8; }
+      .side { fill: #f8f4ec; stroke: #45545d; stroke-width: 2; }
+      .box { fill: #ffffff; stroke: #4f6b79; stroke-width: 2; rx: 14; ry: 14; }
+      .box2 { fill: #f5f7f8; stroke: #4f6b79; stroke-width: 2; rx: 14; ry: 14; }
+      .box3 { fill: #f9f4ea; stroke: #8e724e; stroke-width: 2; rx: 14; ry: 14; }
+      .title { font: 700 28px 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #24333b; }
+      .layerTitle { font: 700 30px 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #234a5a; }
+      .text { font: 600 18px 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #1b1f23; }
+      .small { font: 500 15px 'Microsoft YaHei', 'Noto Sans SC', sans-serif; fill: #48535b; }
+      .arrow { stroke: #406a80; stroke-width: 3; fill: none; marker-end: url(#mArrow); }
+      .arrowSoft { stroke: #9a7b51; stroke-width: 2.5; fill: none; marker-end: url(#mArrowSoft); }
+    </style>
+    <marker id="mArrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#406a80" />
+    </marker>
+    <marker id="mArrowSoft" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9a7b51" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="980" />
+  <text class="title" x="800" y="48" text-anchor="middle">OpenCDP 社区检测集成平台总体架构图</text>
+
+  <rect class="side" x="40" y="88" width="210" height="110" />
+  <text class="title" x="145" y="154" text-anchor="middle">前端展示层</text>
+  <path class="arrow" d="M 250 143 L 330 143" />
+
+  <rect class="layer" x="340" y="70" width="1210" height="150" />
+  <text class="layerTitle" x="945" y="105" text-anchor="middle">Web 用户界面</text>
+  <rect class="box" x="405" y="120" width="280" height="64" />
+  <rect class="box" x="720" y="120" width="280" height="64" />
+  <rect class="box" x="1035" y="120" width="280" height="64" />
+  <rect class="box" x="1350" y="120" width="150" height="64" />
+  <text class="text" x="545" y="160" text-anchor="middle">登录注册 / 用户认证</text>
+  <text class="text" x="860" y="160" text-anchor="middle">方法 / 数据集 / 指标浏览</text>
+  <text class="text" x="1175" y="160" text-anchor="middle">运行配置 / 结果详情</text>
+  <text class="text" x="1425" y="160" text-anchor="middle">运行历史</text>
+
+  <text class="title" x="945" y="260" text-anchor="middle">RESTful API + 状态轮询</text>
+  <path class="arrow" d="M 945 222 L 945 300" />
+
+  <rect class="side" x="40" y="284" width="210" height="110" />
+  <text class="title" x="145" y="350" text-anchor="middle">后端接口层</text>
+  <path class="arrow" d="M 250 339 L 330 339" />
+
+  <rect class="layer" x="340" y="280" width="1210" height="255" />
+  <text class="layerTitle" x="945" y="320" text-anchor="middle">FastAPI 接口与服务层</text>
+
+  <rect class="box2" x="390" y="360" width="210" height="70" />
+  <rect class="box2" x="640" y="360" width="210" height="70" />
+  <rect class="box2" x="890" y="360" width="210" height="70" />
+  <rect class="box2" x="1140" y="360" width="210" height="70" />
+  <rect class="box2" x="700" y="455" width="490" height="56" />
+
+  <text class="text" x="495" y="400" text-anchor="middle">公开接口</text>
+  <text class="small" x="495" y="422" text-anchor="middle">methods / datasets / metrics / preview</text>
+
+  <text class="text" x="745" y="400" text-anchor="middle">认证接口</text>
+  <text class="small" x="745" y="422" text-anchor="middle">register / login</text>
+
+  <text class="text" x="995" y="400" text-anchor="middle">运行管理接口</text>
+  <text class="small" x="995" y="422" text-anchor="middle">create / status / results / cancel / history</text>
+
+  <text class="text" x="1245" y="400" text-anchor="middle">数据集管理服务</text>
+  <text class="small" x="1245" y="422" text-anchor="middle">本地加载 / 下载缓存 / 数据预览</text>
+
+  <text class="text" x="945" y="490" text-anchor="middle">参数校验、权限校验、插件加载、运行记录创建</text>
+
+  <path class="arrow" d="M 995 430 L 995 455" />
+  <path class="arrow" d="M 1245 430 L 1105 455" />
+  <path class="arrow" d="M 495 430 L 785 455" />
+
+  <path class="arrow" d="M 945 535 L 945 600" />
+  <text class="title" x="1068" y="584">异步提交与执行调度</text>
+
+  <rect class="side" x="40" y="575" width="210" height="110" />
+  <text class="title" x="145" y="641" text-anchor="middle">插件与运行层</text>
+  <path class="arrow" d="M 250 630 L 330 630" />
+
+  <rect class="layer" x="340" y="570" width="1210" height="235" />
+  <text class="layerTitle" x="945" y="608" text-anchor="middle">异步 Runner + 插件注册中心</text>
+
+  <rect class="box3" x="390" y="650" width="260" height="78" />
+  <rect class="box3" x="690" y="650" width="260" height="78" />
+  <rect class="box3" x="990" y="650" width="260" height="78" />
+  <rect class="box3" x="1290" y="650" width="200" height="78" />
+
+  <text class="text" x="520" y="685" text-anchor="middle">统一注册中心</text>
+  <text class="small" x="520" y="708" text-anchor="middle">methods / datasets / metrics</text>
+
+  <text class="text" x="820" y="685" text-anchor="middle">任务调度器</text>
+  <text class="small" x="820" y="708" text-anchor="middle">submit_run / cancel_run_execution</text>
+
+  <text class="text" x="1120" y="685" text-anchor="middle">可选队列调度</text>
+  <text class="small" x="1120" y="708" text-anchor="middle">Redis + RQ / CPU 队列 / GPU 队列 / Remote 队列</text>
+
+  <text class="text" x="1390" y="685" text-anchor="middle">本地线程回退</text>
+  <text class="small" x="1390" y="708" text-anchor="middle">队列不可用时执行</text>
+
+  <rect class="box" x="450" y="742" width="320" height="46" />
+  <rect class="box" x="810" y="742" width="320" height="46" />
+  <rect class="box" x="1170" y="742" width="260" height="46" />
+
+  <text class="small" x="610" y="771" text-anchor="middle">方法插件：Louvain / K-Means / NMF / DeepWalk / DDGAE / CDBNE / CSEA</text>
+  <text class="small" x="970" y="771" text-anchor="middle">Conda 子进程执行：app.runner.method_subprocess</text>
+  <text class="small" x="1300" y="771" text-anchor="middle">指标评估：NMI / ACC / ARI / Modularity Q</text>
+
+  <path class="arrowSoft" d="M 650 689 L 690 689" />
+  <path class="arrowSoft" d="M 950 689 L 990 689" />
+  <path class="arrowSoft" d="M 1250 689 L 1290 689" />
+
+  <path class="arrow" d="M 945 805 L 945 870" />
+
+  <rect class="side" x="40" y="848" width="210" height="110" />
+  <text class="title" x="145" y="914" text-anchor="middle">数据与持久化层</text>
+  <path class="arrow" d="M 250 903 L 330 903" />
+
+  <rect class="layer" x="340" y="840" width="1210" height="108" />
+  <text class="layerTitle" x="945" y="877" text-anchor="middle">数据与结果存储</text>
+  <rect class="box2" x="390" y="892" width="280" height="40" />
+  <rect class="box2" x="710" y="892" width="360" height="40" />
+  <rect class="box2" x="1110" y="892" width="370" height="40" />
+
+  <text class="small" x="530" y="918" text-anchor="middle">SQLite + SQLAlchemy：users / runs</text>
+  <text class="small" x="890" y="918" text-anchor="middle">运行记录：params / seed / logs / status / duration / metrics_result / version_info</text>
+  <text class="small" x="1295" y="918" text-anchor="middle">数据与结果文件：datasets/manual / datasets/cache / viz / community assignment / error detail</text>
+</svg>

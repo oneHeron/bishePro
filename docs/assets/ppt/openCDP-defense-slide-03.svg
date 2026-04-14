@@ -1,0 +1,20 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>
+    .bg{fill:#f6f8fb;}.panel{fill:#fff;stroke:#d8e2ea;stroke-width:2;}
+    .card{fill:#f9fbfc;stroke:#d7e2ea;stroke-width:2;}.accent{fill:#16384b;}
+    .title{font:700 40px 'Microsoft YaHei';fill:#11202b;}.sub{font:600 22px 'Microsoft YaHei';fill:#53636d;}
+    .text{font:600 24px 'Microsoft YaHei';fill:#23313a;}.small{font:500 18px 'Microsoft YaHei';fill:#5a6871;}
+  </style></defs>
+  <rect class="bg" width="1600" height="900"/><rect x="80" y="70" width="1440" height="760" rx="28" class="panel"/><rect x="80" y="70" width="18" height="760" class="accent"/>
+  <text class="sub" x="145" y="138">第3页 核心功能模块</text>
+  <text class="title" x="145" y="220">OpenCDP围绕资源管理、任务运行和结果分析构建核心功能</text>
+  <rect x="145" y="290" width="300" height="170" rx="24" class="card"/><text class="text" x="185" y="350">资源管理模块</text><text class="small" x="185" y="395">方法库 / 数据集库 / 指标库</text>
+  <rect x="470" y="290" width="300" height="170" rx="24" class="card"/><text class="text" x="510" y="350">用户认证模块</text><text class="small" x="510" y="395">注册 / 登录 / 权限控制</text>
+  <rect x="795" y="290" width="300" height="170" rx="24" class="card"/><text class="text" x="835" y="350">任务配置模块</text><text class="small" x="835" y="395">方法 + 数据集 + 指标 + 参数</text>
+  <rect x="1120" y="290" width="300" height="170" rx="24" class="card"/><text class="text" x="1160" y="350">结果管理模块</text><text class="small" x="1160" y="395">指标 / 日志 / 可视化 / 导出</text>
+  <rect x="145" y="500" width="620" height="220" rx="24" fill="#eef4f8" stroke="#d8e2ea"/>
+  <text x="455" y="620" text-anchor="middle" font-family="Microsoft YaHei" font-size="30" font-weight="700" fill="#587183">左下可放首页截图</text>
+  <rect x="800" y="500" width="620" height="220" rx="24" fill="#f8f3ea" stroke="#e5d6bd"/>
+  <text x="1110" y="620" text-anchor="middle" font-family="Microsoft YaHei" font-size="30" font-weight="700" fill="#8a6a3a">右下可放运行页缩略图</text>
+</svg>
+

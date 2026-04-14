@@ -1,0 +1,22 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>
+    .bg{fill:#f6f8fb;}.panel{fill:#fff;stroke:#d8e2ea;stroke-width:2;}.accent{fill:#16384b;}
+    .title{font:700 40px 'Microsoft YaHei';fill:#11202b;}.sub{font:600 22px 'Microsoft YaHei';fill:#53636d;}
+    .cap{font:700 24px 'Microsoft YaHei';fill:#23313a;}.small{font:500 18px 'Microsoft YaHei';fill:#5a6871;}
+    .img1{fill:#eef4f8;stroke:#d8e2ea;stroke-width:2;}.img2{fill:#f7f4ea;stroke:#e0d2b7;stroke-width:2;}
+  </style></defs>
+  <rect class="bg" width="1600" height="900"/><rect x="80" y="70" width="1440" height="760" rx="28" class="panel"/><rect x="80" y="70" width="18" height="760" class="accent"/>
+  <text class="sub" x="145" y="138">第5页 运行流程与界面展示</text>
+  <text class="title" x="145" y="220">系统完成了从任务配置到结果展示的完整闭环</text>
+  <rect x="145" y="290" width="610" height="330" rx="24" class="img1"/>
+  <rect x="845" y="290" width="610" height="330" rx="24" class="img2"/>
+  <text class="cap" x="450" y="470" text-anchor="middle">左侧放运行配置页截图</text>
+  <text class="cap" x="1150" y="470" text-anchor="middle">右侧放结果详情页截图</text>
+  <path d="M250 710 H1350" stroke="#234a5a" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <circle cx="320" cy="710" r="12" fill="#234a5a"/><circle cx="590" cy="710" r="12" fill="#234a5a"/><circle cx="860" cy="710" r="12" fill="#234a5a"/><circle cx="1130" cy="710" r="12" fill="#234a5a"/>
+  <text class="small" x="320" y="755" text-anchor="middle">任务配置</text>
+  <text class="small" x="590" y="755" text-anchor="middle">提交运行</text>
+  <text class="small" x="860" y="755" text-anchor="middle">异步执行</text>
+  <text class="small" x="1130" y="755" text-anchor="middle">结果展示</text>
+</svg>
+

@@ -1,0 +1,131 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg{fill:#fbfaf6;}
+      .dash{fill:none;stroke:#28343b;stroke-width:2.2;stroke-dasharray:14 10;}
+      .title{font:700 28px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#24333b;}
+      .section{font:700 26px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#d63d22;}
+      .label{font:700 20px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#1a1f24;}
+      .small{font:500 16px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#364148;}
+      .cloud{fill:#fff1c8;opacity:0.92;}
+      .card{fill:#ffffff;stroke:#444f56;stroke-width:2;}
+      .disk{fill:#f6f6f6;stroke:#4b5560;stroke-width:2;}
+      .circle{fill:#ffffff;stroke:#8c9398;stroke-width:1.6;stroke-dasharray:4 3;}
+      .flow{stroke:#e17f2f;stroke-width:5;fill:none;stroke-dasharray:10 8;marker-end:url(#arrow);}
+      .flow2{stroke:#4b7da0;stroke-width:4;fill:none;marker-end:url(#arrowBlue);}
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#e17f2f"/>
+    </marker>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4b7da0"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1600" height="980"/>
+  <text class="title" x="800" y="42" text-anchor="middle">OpenCDP 平台总体架构彩色示意图</text>
+
+  <rect class="dash" x="50" y="55" width="1500" height="870" rx="16"/>
+  <rect class="dash" x="90" y="95" width="1420" height="215" rx="12"/>
+  <rect class="dash" x="90" y="335" width="1420" height="290" rx="12"/>
+  <rect class="dash" x="90" y="650" width="1420" height="235" rx="12"/>
+
+  <text class="section" x="780" y="110">Web 前端层</text>
+  <text class="section" x="780" y="350">服务与算法执行层</text>
+  <text class="section" x="780" y="665">数据与持久化层</text>
+
+  <ellipse class="cloud" cx="350" cy="185" rx="230" ry="82"/>
+  <ellipse class="cloud" cx="800" cy="180" rx="260" ry="88"/>
+  <ellipse class="cloud" cx="1240" cy="185" rx="220" ry="74"/>
+
+  <rect class="card" x="180" y="148" width="140" height="64" rx="14"/>
+  <rect class="card" x="360" y="148" width="170" height="64" rx="14"/>
+  <text class="label" x="250" y="189" text-anchor="middle">用户浏览器</text>
+  <text class="label" x="445" y="189" text-anchor="middle">Vue3 + Vite 前端</text>
+
+  <rect class="card" x="645" y="135" width="180" height="54" rx="12"/>
+  <rect class="card" x="845" y="135" width="180" height="54" rx="12"/>
+  <rect class="card" x="745" y="205" width="180" height="54" rx="12"/>
+  <text class="label" x="735" y="170" text-anchor="middle">登录注册</text>
+  <text class="label" x="935" y="170" text-anchor="middle">资源浏览</text>
+  <text class="label" x="835" y="240" text-anchor="middle">运行配置与结果展示</text>
+
+  <rect class="card" x="1125" y="145" width="145" height="58" rx="12"/>
+  <rect class="card" x="1290" y="145" width="145" height="58" rx="12"/>
+  <text class="label" x="1198" y="181" text-anchor="middle">运行历史</text>
+  <text class="label" x="1362" y="181" text-anchor="middle">状态轮询</text>
+
+  <path class="flow2" d="M800 275 L800 335"/>
+  <text class="label" x="835" y="315">RESTful API</text>
+
+  <ellipse class="cloud" cx="430" cy="470" rx="210" ry="92"/>
+  <ellipse class="cloud" cx="820" cy="470" rx="250" ry="102"/>
+  <ellipse class="cloud" cx="1230" cy="470" rx="220" ry="92"/>
+
+  <rect class="card" x="290" y="405" width="120" height="60" rx="12"/>
+  <rect class="card" x="430" y="405" width="120" height="60" rx="12"/>
+  <rect class="card" x="290" y="490" width="120" height="60" rx="12"/>
+  <rect class="card" x="430" y="490" width="120" height="60" rx="12"/>
+  <text class="label" x="350" y="442" text-anchor="middle">FastAPI</text>
+  <text class="label" x="490" y="442" text-anchor="middle">公开接口</text>
+  <text class="label" x="350" y="527" text-anchor="middle">认证接口</text>
+  <text class="label" x="490" y="527" text-anchor="middle">运行接口</text>
+
+  <rect class="card" x="665" y="395" width="155" height="58" rx="12"/>
+  <rect class="card" x="845" y="395" width="155" height="58" rx="12"/>
+  <rect class="card" x="755" y="485" width="155" height="58" rx="12"/>
+  <text class="label" x="742" y="431" text-anchor="middle">插件加载服务</text>
+  <text class="label" x="922" y="431" text-anchor="middle">数据集管理器</text>
+  <text class="label" x="832" y="521" text-anchor="middle">异步任务调度器</text>
+
+  <rect class="card" x="1125" y="392" width="155" height="58" rx="12"/>
+  <rect class="card" x="1305" y="392" width="155" height="58" rx="12"/>
+  <rect class="card" x="1125" y="486" width="155" height="58" rx="12"/>
+  <rect class="card" x="1305" y="486" width="155" height="58" rx="12"/>
+  <text class="label" x="1202" y="428" text-anchor="middle">统一注册中心</text>
+  <text class="label" x="1382" y="428" text-anchor="middle">方法插件</text>
+  <text class="label" x="1202" y="522" text-anchor="middle">指标评估</text>
+  <text class="label" x="1382" y="522" text-anchor="middle">Conda 子进程执行</text>
+
+  <path class="flow" d="M550 520 C620 520,650 520,755 520"/>
+  <path class="flow" d="M910 520 C990 520,1030 520,1125 520"/>
+  <path class="flow2" d="M820 335 L820 392"/>
+
+  <ellipse class="cloud" cx="350" cy="770" rx="220" ry="74"/>
+  <ellipse class="cloud" cx="820" cy="770" rx="280" ry="82"/>
+  <ellipse class="cloud" cx="1260" cy="770" rx="220" ry="74"/>
+
+  <g transform="translate(220,720)">
+    <ellipse class="disk" cx="0" cy="12" rx="28" ry="12"/>
+    <rect class="disk" x="-28" y="12" width="56" height="46"/>
+    <ellipse class="disk" cx="0" cy="58" rx="28" ry="12"/>
+  </g>
+  <g transform="translate(320,720)">
+    <ellipse class="disk" cx="0" cy="12" rx="28" ry="12"/>
+    <rect class="disk" x="-28" y="12" width="56" height="46"/>
+    <ellipse class="disk" cx="0" cy="58" rx="28" ry="12"/>
+  </g>
+  <text class="label" x="235" y="818">SQLite</text>
+  <text class="label" x="320" y="818">SQLAlchemy</text>
+
+  <rect class="card" x="650" y="725" width="165" height="60" rx="12"/>
+  <rect class="card" x="835" y="725" width="165" height="60" rx="12"/>
+  <rect class="card" x="742" y="805" width="165" height="60" rx="12"/>
+  <text class="label" x="732" y="762" text-anchor="middle">users 表</text>
+  <text class="label" x="917" y="762" text-anchor="middle">runs 表</text>
+  <text class="label" x="825" y="842" text-anchor="middle">运行日志 / 指标结果 / 版本信息</text>
+
+  <rect class="card" x="1140" y="720" width="150" height="58" rx="12"/>
+  <rect class="card" x="1310" y="720" width="150" height="58" rx="12"/>
+  <rect class="card" x="1225" y="804" width="150" height="58" rx="12"/>
+  <text class="label" x="1215" y="756" text-anchor="middle">datasets/manual</text>
+  <text class="label" x="1385" y="756" text-anchor="middle">datasets/cache</text>
+  <text class="label" x="1300" y="840" text-anchor="middle">viz / community assignment</text>
+
+  <path class="flow" d="M1382 544 C1382 600,1300 640,1300 720"/>
+  <path class="flow" d="M1202 544 C1202 620,905 650,905 725"/>
+  <path class="flow" d="M820 543 C820 620,820 680,820 725"/>
+
+  <circle class="circle" cx="145" cy="775" r="54"/>
+  <text class="label" x="145" y="770" text-anchor="middle">运行记录</text>
+  <text class="small" x="145" y="795" text-anchor="middle" dominant-baseline="middle">持久化</text>
+</svg>

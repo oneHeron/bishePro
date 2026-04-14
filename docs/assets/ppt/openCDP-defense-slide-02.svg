@@ -1,0 +1,15 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>
+    .bg{fill:#f6f8fb;}.panel{fill:#fff;stroke:#d8e2ea;stroke-width:2;}
+    .accent{fill:#16384b;}.title{font:700 40px 'Microsoft YaHei';fill:#11202b;}
+    .sub{font:600 22px 'Microsoft YaHei';fill:#53636d;}.small{font:500 20px 'Microsoft YaHei';fill:#5a6871;}
+  </style></defs>
+  <rect class="bg" width="1600" height="900"/><rect x="80" y="70" width="1440" height="760" rx="28" class="panel"/><rect x="80" y="70" width="18" height="760" class="accent"/>
+  <text class="sub" x="145" y="138">第2页 系统总体架构</text>
+  <text class="title" x="145" y="220">系统采用分层与插件化相结合的总体架构</text>
+  <rect x="145" y="280" width="1290" height="430" rx="20" fill="#f8fbfd" stroke="#d8e2ea" stroke-dasharray="10 8"/>
+  <text x="790" y="510" text-anchor="middle" font-family="Microsoft YaHei" font-size="34" font-weight="700" fill="#527187">在此放置总体架构图</text>
+  <text class="small" x="145" y="770">推荐插图：openCDP-overall-architecture-layered.svg</text>
+  <text class="small" x="145" y="805">结论：通过分层设计将界面交互、业务编排、算法执行和数据存储解耦。</text>
+</svg>
+

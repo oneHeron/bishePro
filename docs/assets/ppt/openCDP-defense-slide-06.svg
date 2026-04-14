@@ -1,0 +1,18 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>
+    .bg{fill:#f6f8fb;}.panel{fill:#fff;stroke:#d8e2ea;stroke-width:2;}.accent{fill:#16384b;}
+    .title{font:700 40px 'Microsoft YaHei';fill:#11202b;}.sub{font:600 22px 'Microsoft YaHei';fill:#53636d;}
+    .text{font:600 28px 'Microsoft YaHei';fill:#23313a;}.small{font:500 20px 'Microsoft YaHei';fill:#5a6871;}
+  </style></defs>
+  <rect class="bg" width="1600" height="900"/><rect x="80" y="70" width="1440" height="760" rx="28" class="panel"/><rect x="80" y="70" width="18" height="760" class="accent"/>
+  <text class="sub" x="145" y="138">第6页 系统效果与本章小结</text>
+  <text class="title" x="145" y="220">OpenCDP验证了社区检测研究内容的系统化落地能力</text>
+  <rect x="145" y="300" width="650" height="360" rx="24" fill="#eef4f8" stroke="#d8e2ea"/>
+  <text x="470" y="500" text-anchor="middle" font-family="Microsoft YaHei" font-size="30" font-weight="700" fill="#587183">左侧放运行历史页截图</text>
+  <rect x="860" y="300" width="560" height="360" rx="24" fill="#16384b"/>
+  <text x="1140" y="390" text-anchor="middle" font-family="Microsoft YaHei" font-size="30" font-weight="700" fill="#ffffff">本章总结</text>
+  <text x="920" y="470" font-family="Microsoft YaHei" font-size="24" font-weight="500" fill="#d9e5ed">• 完成资源、运行、结果、历史统一闭环</text>
+  <text x="920" y="525" font-family="Microsoft YaHei" font-size="24" font-weight="500" fill="#d9e5ed">• 支持方法、数据集、指标持续扩展</text>
+  <text x="920" y="580" font-family="Microsoft YaHei" font-size="24" font-weight="500" fill="#d9e5ed">• 为实验复现和应用展示提供平台支撑</text>
+  <text class="small" x="145" y="760">结束页只强调结论，不再讲细节，实现“从研究到系统”的收束。</text>
+</svg>

@@ -1,0 +1,113 @@
+flowchart TB
+  subgraph L1["前端展示层 Frontend"]
+    UI["Vue3 + Vite Web UI
+    首页 / 登录注册 / 方法数据集指标浏览
+    运行配置 / 结果详情 / 运行历史"]
+    Poll["轮询交互
+    提交 run_id
+    查询状态 / 结果 / 历史"]
+    UI --> Poll
+  end
+
+  subgraph L2["后端接口层 API Layer"]
+    API["FastAPI"]
+    PublicAPI["公开接口
+    /public/methods
+    /public/datasets
+    /public/metrics
+    /public/datasets/{id}/preview"]
+    AuthAPI["认证接口
+    /auth/register
+    /auth/login"]
+    RunAPI["运行接口
+    /runs
+    /runs/me
+    /runs/{id}
+    /runs/{id}/results
+    /runs/{id}/cancel"]
+    API --> PublicAPI
+    API --> AuthAPI
+    API --> RunAPI
+  end
+
+  subgraph L3["服务与调度层 Service + Runner"]
+    Validate["参数校验与权限校验
+    方法 / 数据集 / 指标兼容性检查"]
+    Loader["插件加载服务
+    load_builtin_plugins()"]
+    DatasetMgr["数据集管理器
+    本地加载 / 下载缓存 / 预览"]
+    Submit["异步任务提交
+    submit_run()"]
+    Queue["可选队列调度
+    Redis + RQ
+    CPU 队列 / GPU 队列 / Remote 队列"]
+    LocalRunner["本地线程回退执行"]
+    Cancel["任务取消与状态维护
+    cancel_run_execution()"]
+    Validate --> Submit
+    Loader --> Validate
+    DatasetMgr --> Validate
+    Submit --> Queue
+    Submit --> LocalRunner
+    Cancel --> Submit
+  end
+
+  subgraph L4["插件与算法执行层 Plugin + Algorithm"]
+    Registry["统一注册中心
+    registry.methods
+    registry.datasets
+    registry.metrics"]
+    MethodPlugin["方法插件
+    Louvain / K-Means / NMF / DeepWalk
+    DDGAE / CDBNE / CSEA / 其他扩展方法"]
+    MetricPlugin["指标模块
+    NMI / ACC / ARI / Modularity Q"]
+    DatasetMeta["数据集元信息
+    Karate / Dolphin / Polbooks
+    Cora / Citeseer 等"]
+    Subprocess["Conda 子进程执行
+    app.runner.method_subprocess"]
+    Eval["结果评估与可视化数据生成
+    community assignment
+    metrics
+    viz"]
+    Registry --> MethodPlugin
+    Registry --> MetricPlugin
+    Registry --> DatasetMeta
+    MethodPlugin --> Subprocess
+    DatasetMeta --> Subprocess
+    MetricPlugin --> Eval
+    Subprocess --> Eval
+  end
+
+  subgraph L5["数据与持久化层 Data Layer"]
+    DB["SQLite + SQLAlchemy
+    users
+    runs"]
+    RunData["运行记录持久化
+    params / seed / logs
+    status / duration / metrics_result
+    version_info / results"]
+    DatasetStore["数据集目录
+    datasets/manual
+    datasets/cache"]
+    ResultFiles["结果内容
+    拓扑可视化数据
+    社区划分结果
+    日志与错误信息"]
+    DB --> RunData
+    DatasetStore --> ResultFiles
+  end
+
+  UI <--> API
+  RunAPI --> Validate
+  PublicAPI --> Loader
+  PublicAPI --> DatasetMgr
+  Queue --> Registry
+  LocalRunner --> Registry
+  Queue --> Eval
+  LocalRunner --> Eval
+  Eval --> RunData
+  Eval --> ResultFiles
+

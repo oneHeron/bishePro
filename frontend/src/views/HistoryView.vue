@@ -1,7 +1,7 @@
 <template>
   <section class="history-view card">
-    <h1>Run History</h1>
-    <p class="hint">历史记录按时间展示（YYYY-MM-DD HH:mm:ss），越新越靠前。</p>
+    <h1>运行历史</h1>
+    <p class="hint">Run History · 历史记录按时间展示（YYYY-MM-DD HH:mm:ss），越新越靠前。</p>
     <div v-if="!token" class="login-tip">
       <strong>尚未登录。</strong>
       登录后可查看你的运行历史、状态和耗时。
@@ -23,12 +23,12 @@
       <thead>
         <tr>
           <th style="width: 44px;"></th>
-          <th>Timestamp</th>
+          <th>提交时间</th>
           <th>显示ID</th>
           <th>进度</th>
-          <th>Method</th>
-          <th>Dataset</th>
-          <th>Status</th>
+          <th>方法</th>
+          <th>数据集</th>
+          <th>状态</th>
           <th>操作</th>
         </tr>
       </thead>

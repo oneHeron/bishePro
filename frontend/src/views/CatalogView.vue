@@ -1,13 +1,13 @@
 <template>
   <section class="catalog-view">
     <h1>{{ pageTitle }}</h1>
-    <p class="hint">展示当前分类下的全部条目及详细介绍。</p>
+    <p class="hint">Catalog · 展示当前分类下的全部条目及详细介绍。</p>
 
     <article class="card catalog-card">
       <div class="catalog-toolbar">
-        <button type="button" :class="{ active: type === 'methods' }" @click="goType('methods')">Methods</button>
-        <button type="button" :class="{ active: type === 'datasets' }" @click="goType('datasets')">Datasets</button>
-        <button type="button" :class="{ active: type === 'metrics' }" @click="goType('metrics')">Metrics</button>
+        <button type="button" :class="{ active: type === 'methods' }" @click="goType('methods')">方法</button>
+        <button type="button" :class="{ active: type === 'datasets' }" @click="goType('datasets')">数据集</button>
+        <button type="button" :class="{ active: type === 'metrics' }" @click="goType('metrics')">指标</button>
         <div v-if="type === 'methods' || type === 'datasets'" class="quick-filter catalog-attr-filter">
           <button type="button" :class="{ active: attrFilter === 'all' }" @click="attrFilter = 'all'">全部</button>
           <button type="button" :class="{ active: attrFilter === 'attributed' }" @click="attrFilter = 'attributed'">有属性</button>
@@ -26,8 +26,8 @@
         当前分类: {{ attrFilterLabel }}
       </p>
 
-      <p v-if="loading" class="hint">Loading {{ type }}...</p>
-      <p v-else-if="!filteredItems.length" class="hint">No matched data.</p>
+      <p v-if="loading" class="hint">正在加载 {{ pageTitle }}...</p>
+      <p v-else-if="!filteredItems.length" class="hint">没有匹配到相关内容。</p>
 
       <div v-else class="catalog-list">
         <article v-for="item in filteredItems" :key="item.key" class="catalog-item">
@@ -41,21 +41,21 @@
             <strong>实现级别:</strong> {{ methodLevelText(item) }}
           </p>
           <ul v-if="type === 'datasets'" class="meta-list">
-            <li><strong>Topology:</strong> Yes</li>
-            <li><strong>Features:</strong> {{ item.has_features ? 'Yes' : 'No' }}</li>
-            <li><strong>Labels:</strong> {{ item.has_labels ? 'Yes' : 'No' }}</li>
-            <li><strong>Nodes:</strong> {{ item.node_count ?? '-' }}</li>
-            <li><strong>Edges:</strong> {{ item.edge_count ?? '-' }}</li>
-            <li><strong>Communities:</strong> {{ item.community_count ?? '-' }}</li>
+            <li><strong>拓扑结构:</strong> 是</li>
+            <li><strong>节点特征:</strong> {{ item.has_features ? '有' : '无' }}</li>
+            <li><strong>标签信息:</strong> {{ item.has_labels ? '有' : '无' }}</li>
+            <li><strong>节点数:</strong> {{ item.node_count ?? '-' }}</li>
+            <li><strong>边数:</strong> {{ item.edge_count ?? '-' }}</li>
+            <li><strong>社区数:</strong> {{ item.community_count ?? '-' }}</li>
           </ul>
           <ul v-if="type === 'methods'" class="meta-list">
-            <li><strong>Category:</strong> {{ methodCategory(item) }}</li>
-            <li><strong>Requires GPU:</strong> {{ item.requires_gpu ? 'Yes' : 'No' }}</li>
-            <li><strong>Compatibility:</strong> {{ methodCompatText(item) }}</li>
-            <li><strong>Algorithm Note:</strong> {{ item.algorithm_note || item.description }}</li>
+            <li><strong>类别:</strong> {{ methodCategory(item) }}</li>
+            <li><strong>需要 GPU:</strong> {{ item.requires_gpu ? '是' : '否' }}</li>
+            <li><strong>兼容性:</strong> {{ methodCompatText(item) }}</li>
+            <li><strong>算法说明:</strong> {{ item.algorithm_note || item.description }}</li>
           </ul>
           <ul v-if="type === 'metrics'" class="meta-list">
-            <li><strong>Requires Labels:</strong> {{ item.requires_labels ? 'Yes' : 'No' }}</li>
+            <li><strong>依赖标签:</strong> {{ item.requires_labels ? '是' : '否' }}</li>
           </ul>
         </article>
       </div>
@@ -84,9 +84,9 @@ const type = computed(() => {
 })
 
 const pageTitle = computed(() => {
-  if (type.value === 'methods') return 'All Methods'
-  if (type.value === 'datasets') return 'All Datasets'
-  return 'All Metrics'
+  if (type.value === 'methods') return '全部方法'
+  if (type.value === 'datasets') return '全部数据集'
+  return '全部指标'
 })
 
 const items = computed(() => {
@@ -95,9 +95,9 @@ const items = computed(() => {
   return metrics.value
 })
 const searchPlaceholder = computed(() => {
-  if (type.value === 'methods') return 'Search methods by name / key / description'
-  if (type.value === 'datasets') return 'Search datasets by name / key / description'
-  return 'Search metrics by name / key / description'
+  if (type.value === 'methods') return '按名称 / Key / 描述搜索方法'
+  if (type.value === 'datasets') return '按名称 / Key / 描述搜索数据集'
+  return '按名称 / Key / 描述搜索指标'
 })
 const filteredItems = computed(() => {
   const attrFiltered = items.value.filter((item) => matchAttrFilter(item))
@@ -207,7 +207,7 @@ function matchedSnippet(item) {
 function methodCategory(item) {
   const supportsAttr = item.supports_attributed !== false
   const supportsUnattr = item.supports_unattributed !== false
-  if (supportsAttr && supportsUnattr) return '有属性/无属性'
+  if (supportsAttr && supportsUnattr) return '通用型（有属性/无属性）'
   if (supportsAttr) return '有属性'
   if (supportsUnattr) return '无属性'
   return '其他'
@@ -235,13 +235,13 @@ function methodLevelText(method) {
 function detailText(item) {
   if (item.description) return item.description
   if (type.value === 'datasets') {
-    const tags = ['Topology']
-    if (item.has_features) tags.push('Features')
-    if (item.has_labels) tags.push('Labels')
-    return `Dataset supports: ${tags.join(' + ')}`
+    const tags = ['拓扑']
+    if (item.has_features) tags.push('特征')
+    if (item.has_labels) tags.push('标签')
+    return `数据集包含：${tags.join(' / ')}`
   }
-  if (type.value === 'metrics') return 'Evaluation metric for community detection results.'
-  return 'Community detection algorithm.'
+  if (type.value === 'metrics') return '用于评估社区检测结果质量的指标。'
+  return '社区检测算法。'
 }
 
 function goType(nextType) {

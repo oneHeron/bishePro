@@ -1,0 +1,22 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs><style>
+    .bg{fill:#f6f8fb;}.panel{fill:#fff;stroke:#d8e2ea;stroke-width:2;}.accent{fill:#16384b;}
+    .title{font:700 40px 'Microsoft YaHei';fill:#11202b;}.sub{font:600 22px 'Microsoft YaHei';fill:#53636d;}
+    .card1{fill:#eef4f8;stroke:#cfdce6;stroke-width:2;}.card2{fill:#f7f4ea;stroke:#e0d2b7;stroke-width:2;}
+    .text{font:700 28px 'Microsoft YaHei';fill:#23313a;}.small{font:500 20px 'Microsoft YaHei';fill:#5a6871;}
+  </style></defs>
+  <rect class="bg" width="1600" height="900"/><rect x="80" y="70" width="1440" height="760" rx="28" class="panel"/><rect x="80" y="70" width="18" height="760" class="accent"/>
+  <text class="sub" x="145" y="138">第4页 关键实现机制</text>
+  <text class="title" x="145" y="220">系统通过插件化、异步化和可追溯机制保障工程可落地性</text>
+  <rect x="145" y="300" width="400" height="370" rx="26" class="card1"/>
+  <rect x="600" y="300" width="400" height="370" rx="26" class="card2"/>
+  <rect x="1055" y="300" width="400" height="370" rx="26" class="card1"/>
+  <text class="text" x="345" y="380" text-anchor="middle">插件化注册</text>
+  <text class="small" x="185" y="450">• 方法、数据集、指标统一接入</text><text class="small" x="185" y="490">• 新增模块无需修改主流程</text>
+  <text class="text" x="800" y="380" text-anchor="middle">异步运行调度</text>
+  <text class="small" x="640" y="450">• 提交后立即返回 run_id</text><text class="small" x="640" y="490">• 支持 CPU / GPU / Remote 队列</text>
+  <text class="text" x="1255" y="380" text-anchor="middle">运行记录落库</text>
+  <text class="small" x="1095" y="450">• 保存参数、日志、耗时、版本信息</text><text class="small" x="1095" y="490">• 支持任务追踪与实验复现</text>
+  <text class="small" x="145" y="760">这一页强调“不是只做了页面，而是完成了系统底层机制设计”。</text>
+</svg>
+

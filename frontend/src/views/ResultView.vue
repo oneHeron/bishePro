@@ -1,6 +1,7 @@
 <template>
   <section class="result-view">
-    <h1>Task Results: {{ methodName }} on {{ datasetName }} Dataset (Task ID: {{ runId }})</h1>
+    <h1>运行结果详情</h1>
+    <p class="hint result-headline">Result Detail · {{ methodName }} / {{ datasetName }} / 任务 ID：{{ runId }}</p>
 
     <div class="result-grid">
       <article class="graph-card">
@@ -86,8 +87,8 @@
             </p>
             <p class="hint">为保证页面流畅，已关闭拓扑绘制。你仍可查看指标、日志与社区划分结果。</p>
             <div class="empty-viz-meta">
-              <span class="viz-pill">Nodes: {{ nodeCount }}</span>
-              <span class="viz-pill">Threshold: {{ vizThreshold }}</span>
+              <span class="viz-pill">节点数：{{ nodeCount }}</span>
+              <span class="viz-pill">阈值：{{ vizThreshold }}</span>
             </div>
             <div class="empty-viz-actions">
               <button type="button" :disabled="!assignmentRows.length" @click="downloadCommunityCsv">下载社区划分 CSV</button>
@@ -108,27 +109,27 @@
             <span class="spinner" />
             <span>{{ run?.status === 'pending' ? '任务排队中' : '任务执行中' }}</span>
           </div>
-          <p><strong>Task Status:</strong> <span :class="statusClass">{{ run?.status || '-' }}</span></p>
-          <p><strong>Execution Time:</strong> {{ displayDuration }} seconds</p>
-          <p><strong>Estimated Remaining:</strong> {{ estimatedRemainingText }}</p>
-          <p><strong>Method:</strong> {{ methodName }}</p>
-          <p><strong>Dataset:</strong> {{ datasetName }}</p>
-          <p><strong>Runtime Device:</strong> {{ runtimeDeviceText }}</p>
-          <p><strong>Auto Refresh:</strong> {{ autoRefreshText }}</p>
-          <p v-if="latestLog"><strong>Current Step:</strong> {{ latestLog }}</p>
-          <p><strong>Created Time:</strong> {{ formatTime(run?.created_at_ts) }}</p>
-          <p><strong>Started Time:</strong> {{ formatTime(run?.started_at_ts) }}</p>
-          <p><strong>Finished Time:</strong> {{ formatTime(run?.finished_at_ts) }}</p>
+          <p><strong>任务状态：</strong> <span :class="statusClass">{{ statusText(run?.status) }}</span></p>
+          <p><strong>运行时长：</strong> {{ displayDuration }} 秒</p>
+          <p><strong>预计剩余：</strong> {{ estimatedRemainingText }}</p>
+          <p><strong>方法：</strong> {{ methodName }}</p>
+          <p><strong>数据集：</strong> {{ datasetName }}</p>
+          <p><strong>执行设备：</strong> {{ runtimeDeviceText }}</p>
+          <p><strong>自动刷新：</strong> {{ autoRefreshText }}</p>
+          <p v-if="latestLog"><strong>当前步骤：</strong> {{ latestLog }}</p>
+          <p><strong>创建时间：</strong> {{ formatTime(run?.created_at_ts) }}</p>
+          <p><strong>开始时间：</strong> {{ formatTime(run?.started_at_ts) }}</p>
+          <p><strong>结束时间：</strong> {{ formatTime(run?.finished_at_ts) }}</p>
           <div v-if="runNotices.length" class="notice-box">
-            <strong>Notice:</strong>
+            <strong>提示信息：</strong>
             <ul>
               <li v-for="(notice, idx) in runNotices" :key="`notice-${idx}`">{{ notice }}</li>
             </ul>
           </div>
-          <p v-if="run?.error" class="msg"><strong>Error:</strong> {{ run.error }}</p>
+          <p v-if="run?.error" class="msg"><strong>错误信息：</strong> {{ run.error }}</p>
           <div v-if="fullErrorDetail" class="error-detail-box">
             <button type="button" class="error-detail-toggle" @click="showErrorDetail = !showErrorDetail">
-              {{ showErrorDetail ? 'Hide Error Detail' : 'Show Error Detail' }}
+              {{ showErrorDetail ? '收起错误详情' : '查看错误详情' }}
             </button>
             <pre v-if="showErrorDetail">{{ fullErrorDetail }}</pre>
           </div>
@@ -138,8 +139,8 @@
           <table>
             <thead>
               <tr>
-                <th>Evaluation Metrics</th>
-                <th>Data</th>
+                <th>评价指标</th>
+                <th>数值</th>
               </tr>
             </thead>
             <tbody>
@@ -153,7 +154,7 @@
                     <div v-for="idx in 3" :key="idx" class="metric-skeleton" />
                   </div>
                 </td>
-                <td v-else colspan="2">No metrics yet.</td>
+                <td v-else colspan="2">当前暂无指标结果。</td>
               </tr>
             </tbody>
           </table>
@@ -167,18 +168,18 @@
             :disabled="canceling"
             @click="cancelCurrentRun"
           >
-            {{ canceling ? 'Cancelling...' : 'Cancel Run' }}
+            {{ canceling ? '正在取消...' : '取消任务' }}
           </button>
-          <button type="button" @click="showLogs = !showLogs">{{ showLogs ? 'Hide Execution Logs' : 'View Execution Logs' }}</button>
-          <button type="button" :disabled="!assignmentRows.length" @click="downloadCommunityCsv">Download Community CSV</button>
-          <button type="button" @click="downloadResult">Download Results</button>
+          <button type="button" @click="showLogs = !showLogs">{{ showLogs ? '收起执行日志' : '查看执行日志' }}</button>
+          <button type="button" :disabled="!assignmentRows.length" @click="downloadCommunityCsv">下载社区划分 CSV</button>
+          <button type="button" @click="downloadResult">下载结果文件</button>
         </div>
         <p v-if="actionMsg" :class="actionMsgClass">{{ actionMsg }}</p>
       </div>
     </div>
 
     <article v-if="showLogs" class="logs-card">
-      <h2>Execution Logs</h2>
+      <h2>执行日志</h2>
       <ul>
         <li v-for="(log, idx) in run?.logs || []" :key="idx">{{ log }}</li>
       </ul>
@@ -249,22 +250,22 @@ const displayDuration = computed(() => {
   return '-'
 })
 const autoRefreshText = computed(() => {
-  if (!isRunning.value) return 'stopped'
+  if (!isRunning.value) return '已停止'
   const sec = Math.max(0, nextRefreshInMs.value / 1000).toFixed(1)
-  return isRefreshing.value ? 'refreshing...' : `every 1.5s (next ${sec}s)`
+  return isRefreshing.value ? '刷新中...' : `每 1.5 秒刷新一次（下次 ${sec}s）`
 })
 const estimatedRemainingText = computed(() => {
   if (!run.value) return '-'
   const pairKey = `${run.value.method_key || ''}::${run.value.dataset_key || ''}`
   const stat = avgDurationByPair.value[pairKey]
-  if (!stat || !Number.isFinite(stat.avg) || stat.avg <= 0) return 'insufficient history'
-  if (!isRunning.value) return `0.0s (avg ${stat.avg.toFixed(1)}s, n=${stat.count})`
+  if (!stat || !Number.isFinite(stat.avg) || stat.avg <= 0) return '历史样本不足'
+  if (!isRunning.value) return `0.0s（平均 ${stat.avg.toFixed(1)}s，样本 ${stat.count}）`
 
   const startedAt = Number(run.value.started_at_ts || 0)
-  if (!startedAt) return `avg ${stat.avg.toFixed(1)}s (n=${stat.count})`
+  if (!startedAt) return `平均 ${stat.avg.toFixed(1)}s（样本 ${stat.count}）`
   const elapsed = Math.max(0, (nowTs.value - startedAt) / 1000)
   const remain = Math.max(0, stat.avg - elapsed)
-  return `${remain.toFixed(1)}s (avg ${stat.avg.toFixed(1)}s, n=${stat.count})`
+  return `${remain.toFixed(1)}s（平均 ${stat.avg.toFixed(1)}s，样本 ${stat.count}）`
 })
 
 const metricRows = computed(() => {
@@ -287,6 +288,15 @@ const fullErrorDetail = computed(() => {
   return ''
 })
 const actionMsgClass = computed(() => (actionMsg.value.startsWith('已') ? 'ok' : 'msg'))
+
+function statusText(status) {
+  if (status === 'pending') return '排队中'
+  if (status === 'running') return '运行中'
+  if (status === 'finished') return '已完成'
+  if (status === 'failed') return '失败'
+  if (status === 'cancelled') return '已取消'
+  return status || '-'
+}
 
 const assignmentRows = computed(() => run.value?.results?.community_assignment || [])
 const rawVizNodes = computed(() => run.value?.results?.viz?.nodes || [])

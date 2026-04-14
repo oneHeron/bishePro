@@ -2,15 +2,25 @@
   <div class="app-shell">
     <header class="site-header">
       <RouterLink class="brand" to="/">
-        <span class="brand-mark">OpenCDP</span>
-        <span class="brand-sub">Open Community Detection Platform</span>
+        <span class="brand-topline">
+          <span class="brand-logo" aria-hidden="true">
+            <span class="brand-logo-core">O</span>
+            <span class="brand-logo-ring brand-logo-ring-a"></span>
+            <span class="brand-logo-ring brand-logo-ring-b"></span>
+          </span>
+          <span class="brand-wording">
+            <span class="brand-wordmark">OpenCDP</span>
+            <span class="brand-tag">Community Detection Platform</span>
+          </span>
+        </span>
+        <span class="brand-mark">社区检测集成平台</span>
       </RouterLink>
       <nav class="site-nav">
-        <RouterLink to="/catalog/methods">Methods</RouterLink>
-        <RouterLink to="/catalog/datasets">Datasets</RouterLink>
-        <RouterLink to="/catalog/metrics">Metrics</RouterLink>
-        <RouterLink to="/history">History</RouterLink>
-        <RouterLink to="/run">Run</RouterLink>
+        <RouterLink to="/catalog/methods">方法库</RouterLink>
+        <RouterLink to="/catalog/datasets">数据集</RouterLink>
+        <RouterLink to="/catalog/metrics">评价指标</RouterLink>
+        <RouterLink to="/history">运行历史</RouterLink>
+        <RouterLink to="/run">发起运行</RouterLink>
       </nav>
       <div class="auth-block">
         <RouterLink
@@ -18,11 +28,11 @@
           class="auth-btn"
           :to="{ path: '/auth' }"
         >
-          Login/Register
+          登录 / 注册
         </RouterLink>
         <template v-else>
-          <span class="user-chip">{{ username }}</span>
-          <button class="auth-btn" @click="logout">Logout</button>
+          <span class="user-chip">当前用户：{{ username }}</span>
+          <button class="auth-btn" @click="logout">退出登录</button>
         </template>
       </div>
     </header>

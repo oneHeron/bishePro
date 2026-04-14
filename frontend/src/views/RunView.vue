@@ -1,6 +1,6 @@
 <template>
   <section class="run-view">
-    <h1>Submit a New Task</h1>
+    <h1>发起新的运行任务</h1>
     <div v-if="!token" class="login-tip">
       <strong>当前未登录。</strong>
       你可以先浏览和配置任务参数，提交前需要登录账号。
@@ -11,14 +11,14 @@
 
     <div class="step-grid">
       <article class="step-card">
-        <h2>Step 1: Select Method</h2>
+        <h2>步骤 1：选择方法</h2>
         <div class="quick-filter">
           <button type="button" :class="{ active: methodFilter === 'all' }" @click="setMethodFilter('all')">全部</button>
           <button type="button" :class="{ active: methodFilter === 'attributed' }" @click="setMethodFilter('attributed')">有属性</button>
           <button type="button" :class="{ active: methodFilter === 'unattributed' }" @click="setMethodFilter('unattributed')">无属性</button>
         </div>
         <label>
-          Method
+          方法 Method
           <select v-model="form.method_key" :disabled="loading || !!loadError" required>
             <option v-for="method in filteredMethods" :key="method.key" :value="method.key">{{ method.name }}</option>
           </select>
@@ -36,7 +36,7 @@
       </article>
 
       <article class="step-card">
-        <h2>Step 2: Select Dataset</h2>
+        <h2>步骤 2：选择数据集</h2>
         <div class="quick-filter">
           <button type="button" :class="{ active: datasetFilter === 'all' }" @click="setDatasetFilter('all')">全部</button>
           <button type="button" :class="{ active: datasetFilter === 'attributed' }" @click="setDatasetFilter('attributed')">有属性</button>
@@ -58,7 +58,7 @@
       </article>
 
       <article class="step-card">
-        <h2>Step 3: Choose Metrics</h2>
+        <h2>步骤 3：选择指标</h2>
         <div class="scroll-box">
           <label v-for="metric in metrics" :key="metric.key" class="metric-option">
             <input v-model="form.metric_keys" type="checkbox" :value="metric.key" :disabled="loading || !!loadError" />
@@ -72,11 +72,11 @@
     </div>
 
     <article class="config-card">
-      <h2>Run Configuration</h2>
+      <h2>运行配置</h2>
 
       <section class="method-params-box">
         <div class="method-params-head">
-          <h3>Method Parameters</h3>
+          <h3>方法参数</h3>
           <button type="button" class="copy-btn" :disabled="!form.method_key" @click="resetCurrentMethodDefaults">恢复默认值</button>
         </div>
         <p class="hint">根据当前方法显示参数表单；提交时会自动写入 `params`。如果数据集有已知社区数，`num_clusters` 会自动填充。</p>
@@ -100,24 +100,24 @@
       </section>
 
       <div class="mode-toggle">
-        <button type="button" :class="{ active: runMode === 'local' }" @click="runMode = 'local'">Local</button>
-        <button type="button" :class="{ active: runMode === 'remote' }" @click="runMode = 'remote'">Remote Server (Beta)</button>
+        <button type="button" :class="{ active: runMode === 'local' }" @click="runMode = 'local'">本地运行</button>
+        <button type="button" :class="{ active: runMode === 'remote' }" @click="runMode = 'remote'">远程服务器（Beta）</button>
       </div>
       <div v-if="runMode === 'remote'" class="remote-grid">
-        <label>Server IP <input v-model="remote.ip" type="text" placeholder="192.168.1.100" /></label>
-        <label>SSH Port <input v-model.number="remote.port" type="number" placeholder="22" /></label>
-        <label>Username <input v-model="remote.username" type="text" placeholder="runner" /></label>
-        <label>Private Key <input v-model="remote.key_file" type="text" placeholder="~/.ssh/id_rsa" /></label>
+        <label>服务器 IP <input v-model="remote.ip" type="text" placeholder="192.168.1.100" /></label>
+        <label>SSH 端口 <input v-model.number="remote.port" type="number" placeholder="22" /></label>
+        <label>用户名 <input v-model="remote.username" type="text" placeholder="runner" /></label>
+        <label>私钥路径 <input v-model="remote.key_file" type="text" placeholder="~/.ssh/id_rsa" /></label>
       </div>
       <label>
-        Random Seed
+        随机种子 Random Seed
         <input v-model.number="form.seed" type="number" :disabled="loading || !!loadError" />
       </label>
 
       <details>
-        <summary>Advanced Params (JSON Override)</summary>
+        <summary>高级参数（JSON 覆盖）</summary>
         <label>
-          Extra Params (JSON)
+          附加参数 JSON
           <textarea v-model="advancedParamsText" rows="4" placeholder="{}" />
         </label>
       </details>
@@ -126,13 +126,13 @@
         <span class="hint">提交任务需要登录后才能执行。</span>
         <RouterLink class="login-tip-link" :to="{ path: '/auth', query: { redirect: '/run' } }">立即登录</RouterLink>
       </div>
-      <button v-if="token" class="submit-btn" type="button" :disabled="submitDisabled" @click="submitRun">Submit Task</button>
+      <button v-if="token" class="submit-btn" type="button" :disabled="submitDisabled" @click="submitRun">提交任务</button>
       <RouterLink
         v-else
         class="auth-btn submit-login-btn"
         :to="{ path: '/auth', query: { redirect: '/run' } }"
       >
-        Login to Submit
+        登录后提交
       </RouterLink>
       <p v-if="paramErrorMessage" class="msg">{{ paramErrorMessage }}</p>
       <p v-if="compatWarning" class="msg">{{ compatWarning }}</p>
@@ -391,7 +391,7 @@ const paramErrors = computed(() => {
 })
 
 const hasParamErrors = computed(() => Object.keys(paramErrors.value).length > 0)
-const paramErrorMessage = computed(() => (hasParamErrors.value ? '请先修正 Method Parameters 中的错误' : ''))
+const paramErrorMessage = computed(() => (hasParamErrors.value ? '请先修正方法参数中的错误' : ''))
 
 const submitDisabled = computed(
   () =>
@@ -751,7 +751,7 @@ async function submitRun() {
   }
 
   if (hasParamErrors.value) {
-    msg.value = 'Method 参数校验失败，请修正后再提交'
+    msg.value = '方法参数校验失败，请修正后再提交'
     return
   }
   if (!isSelectionCompatible.value) {
@@ -760,7 +760,7 @@ async function submitRun() {
   }
 
   if (runMode.value === 'remote' && !String(remote.ip || '').trim()) {
-    msg.value = 'Remote 模式必须填写 Server IP'
+    msg.value = '远程模式必须填写服务器 IP'
     return
   }
 
@@ -768,7 +768,7 @@ async function submitRun() {
   try {
     advancedParams = JSON.parse(advancedParamsText.value || '{}')
   } catch {
-    msg.value = 'Advanced Params 不是合法 JSON'
+    msg.value = '高级参数不是合法 JSON'
     return
   }
 

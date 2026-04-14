@@ -1,0 +1,33 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg{fill:#f6f8fb;}
+      .panel{fill:#ffffff;stroke:#d8e2ea;stroke-width:2;}
+      .accent{fill:#16384b;}
+      .gold{fill:#c6944e;}
+      .title{font:700 42px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#11202b;}
+      .sub{font:600 22px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#53636d;}
+      .text{font:500 28px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#23313a;}
+      .small{font:500 20px 'Microsoft YaHei','Noto Sans SC',sans-serif;fill:#5a6871;}
+    </style>
+  </defs>
+  <rect class="bg" width="1600" height="900"/>
+  <rect x="80" y="70" width="1440" height="760" rx="28" class="panel"/>
+  <rect x="80" y="70" width="18" height="760" class="accent"/>
+  <text class="sub" x="145" y="138">第五章 系统设计与实现</text>
+  <text class="title" x="145" y="220">OpenCDP实现了社区检测任务的一体化应用支撑</text>
+  <circle cx="1110" cy="260" r="86" fill="#eaf1f6"/>
+  <circle cx="1260" cy="260" r="86" fill="#f6efe4"/>
+  <circle cx="1185" cy="360" r="86" fill="#edf5ef"/>
+  <rect x="145" y="295" width="560" height="390" rx="24" fill="#f9fbfc" stroke="#dbe5eb"/>
+  <text class="text" x="185" y="360">• 集成社区检测方法、数据集与评价指标</text>
+  <text class="text" x="185" y="430">• 支持任务配置、异步运行与结果分析</text>
+  <text class="text" x="185" y="500">• 形成资源浏览、运行与历史追踪闭环</text>
+  <text class="text" x="185" y="570">• 支撑实验复现、对比分析与系统展示</text>
+  <rect x="780" y="315" width="600" height="300" rx="24" fill="#16384b"/>
+  <text x="1080" y="380" text-anchor="middle" font-family="Microsoft YaHei" font-size="30" font-weight="700" fill="#ffffff">系统目标</text>
+  <text x="1080" y="450" text-anchor="middle" font-family="Microsoft YaHei" font-size="26" font-weight="500" fill="#d9e5ed">构建一个面向社区检测任务的</text>
+  <text x="1080" y="495" text-anchor="middle" font-family="Microsoft YaHei" font-size="26" font-weight="500" fill="#d9e5ed">可扩展、可运行、可追溯的应用平台</text>
+  <text class="small" x="145" y="760">配图建议：首页截图或“方法 → 数据集 → 指标 → 运行 → 结果”流程示意</text>
+</svg>
+
