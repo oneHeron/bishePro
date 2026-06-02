@@ -62,7 +62,7 @@ frontend/.vite/
 datasets/cache/
 
 # Optional: local manual datasets (usually large/private)
-datasets/manual/
+# datasets/manual/
 
 # Standalone script download dirs
 dataset/
